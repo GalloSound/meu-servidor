@@ -1,0 +1,46 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PHP_VERSION: ${PHP_VERSION:-8.2}
+    container_name: php_global
+    restart: unless-stopped
+    ports:
+      - "${PHP_RUNTIME_PORT:-8082}:80"
+    volumes:
+      - ./www/index.php:/var/www/html/index.php:ro
+      - ./www/.htaccess:/var/www/html/.htaccess:ro
+      - ./app:/var/www/html/app
+      - ./app_nf:/var/www/html/app_nf
+      - ./app_sistema:/var/www/html/app_sistema
+      - ./gsfacilFront:/var/www/html/gsfacilfront
+      - ./googlecalendar:/var/www/html/googlecalendar
+      - ./peoplecontacts:/var/www/html/peoplecontacts
+      - php_sessions:/tmp/php-sessions
+    environment:
+      TZ: America/Sao_Paulo
+      DB_DRIVER: ${DB_DRIVER:-mysql}
+      DB_HOST: ${DB_HOST:-mariadb_global}
+      DB_DATABASE: ${DB_DATABASE:-gpsjundi_bdgsfacil}
+      DB_USER: ${DB_USER:-root}
+      DB_PASS: ${DB_PASS}
+      APP_BASE_URL_APP: ${APP_BASE_URL_APP:-http://localhost:8082/app/}
+      APP_BASE_URL_APP_NF: ${APP_BASE_URL_APP_NF:-http://localhost:8082/app_nf/}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8082/app_sistema/}
+      APP_BASE_URL_NEW: ${APP_BASE_URL_NEW:-http://localhost:8082/gsfacilfront/public/}
+      APP_BASE_URL_PEOPLECONTACTS: ${APP_BASE_URL_PEOPLECONTACTS:-http://localhost:8082/peoplecontacts/}
+      GOOGLE_CONTACTS_CLIENT_ID: ${GOOGLE_CONTACTS_CLIENT_ID:-}
+      GOOGLE_CONTACTS_CLIENT_SECRET: ${GOOGLE_CONTACTS_CLIENT_SECRET:-}
+      GOOGLE_CONTACTS_REFRESH_TOKEN: ${GOOGLE_CONTACTS_REFRESH_TOKEN:-}
+    networks:
+      - rede-banco-global
+
+networks:
+  rede-banco-global:
+    external: true
+    name: ${DOCKER_NETWORK:-rede-banco-global}
+
+volumes:
+  php_sessions:

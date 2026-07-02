@@ -1,0 +1,12 @@
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redireciona acesso à raiz sem barra final
+    RewriteRule ^$ index.php [L]
+
+    # Alias legado com maiúsculas para o frontend
+    RewriteRule ^gsfacilFront/public/?(.*)$ /gsfacilfront/public/$1 [R=301,L,NC]
+</IfModule>

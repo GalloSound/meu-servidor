@@ -1,0 +1,59 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: mariadb_global
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-banco_inicial}
+    volumes:
+      - ./data:/var/lib/mysql:Z
+      - ./mariadb.cnf:/etc/mysql/conf.d/custom.cnf:ro
+    networks:
+      - rede-banco-global
+    # Sem a diretiva "ports", o banco fica 100% isolado do mundo externo.
+    # Apenas containers na mesma rede conseguem falar com ele.
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: phpmyadmin_global
+    restart: always
+    environment:
+      PMA_HOST: mariadb_global
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 512M
+      MEMORY_LIMIT: 512M
+      MAX_EXECUTION_TIME: 600
+    ports:
+      - "${PHPMYADMIN_PORT:-8080}:80"
+    networks:
+      - rede-banco-global
+    depends_on:
+      - mariadb
+
+  filebrowser:
+    image: filebrowser/filebrowser:v2-s6
+    container_name: filebrowser_global
+    restart: unless-stopped
+    ports:
+      - "${FILEBROWSER_PORT:-8083}:80"
+    environment:
+      PUID: ${FILEBROWSER_PUID:-501}
+      PGID: ${FILEBROWSER_PGID:-20}
+      TZ: America/Sao_Paulo
+    volumes:
+      - ..:/srv/meu-servidor
+      - ./filebrowser/database:/database
+      - ./filebrowser/config:/config
+    # Sem rede-banco-global: Filebrowser não precisa falar com MariaDB/PHP.
+
+networks:
+  rede-banco-global:
+    driver: bridge
+    name: ${DOCKER_NETWORK:-rede-banco-global}  # Define o nome fixo da rede para os projetos
+
+# PHP
+# $host = 'mariadb_global'; // O Docker resolve o nome do container como IP automaticamente!
+# $db   = 'gpsjundi_bdgsfacil'; // Ajuste MARIADB_DATABASE e DB_DATABASE no .env de cada stack
+# $user = 'root';
+# $pass = '${MARIADB_ROOT_PASSWORD}';

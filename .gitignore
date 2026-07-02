@@ -1,0 +1,47 @@
+# Sistema / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Segredos e variaveis locais
+.env
+.env.*
+!.env.example
+
+# Dados persistentes e arquivos gerados
+infra/data/
+infra/filebrowser/database/
+infra/filebrowser/config/
+infra/nginx-proxy-manager/data/
+*.log
+*.sql
+*.dump
+*.tar
+*.tar.gz
+*.zip
+
+# Repositorios de aplicacao versionados separadamente
+php/app/
+php/app_nf/
+php/app_sistema/
+php/gcar/
+php/googlecalendar/
+php/gsfacilFront/
+php/peoplecontacts/
+node/apigsfacil/
+
+# Mantem apenas os arquivos da plataforma compartilhada
+!php/
+!php/compose.yaml
+!php/Dockerfile
+!php/.env.example
+!php/www/
+!php/www/**
+!node/
+
+# Dependencias/builds se aparecerem na raiz
+vendor/
+node_modules/
+dist/
+build/
+coverage/

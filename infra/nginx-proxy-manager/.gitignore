@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+
+data/
+
+*.log
+*.sql
+*.dump
+*.tar
+*.tar.gz
+*.zip

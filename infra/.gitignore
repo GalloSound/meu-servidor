@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+
+data/
+filebrowser/database/
+filebrowser/config/
+
+*.log
+*.sql
+*.dump
+*.tar
+*.tar.gz
+*.zip
