@@ -33,7 +33,7 @@ Evite expor publicamente:
 Clone este repo de plataforma:
 
 ```bash
-git clone <url-do-repo-platform> meu-servidor
+git clone https://github.com/GalloSound/meu-servidor.git
 cd meu-servidor
 ```
 
