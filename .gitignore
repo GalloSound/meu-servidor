@@ -13,6 +13,9 @@ infra/data/
 infra/filebrowser/database/
 infra/filebrowser/config/
 infra/nginx-proxy-manager/data/
+infra/backup/data/
+infra/backup/staging/
+infra/backup/credentials/
 *.log
 *.sql
 *.dump

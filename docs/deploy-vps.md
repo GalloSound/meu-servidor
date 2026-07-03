@@ -56,6 +56,7 @@ Use apenas os projetos que forem realmente necessarios no VPS.
 ```bash
 cp infra/.env.example infra/.env
 cp infra/nginx-proxy-manager/.env.example infra/nginx-proxy-manager/.env
+cp infra/backup/.env.example infra/backup/.env
 cp php/.env.example php/.env
 cp node/apigsfacil/.env.example node/apigsfacil/.env
 ```
@@ -130,6 +131,23 @@ DB_NAME=gpsjundi_bdgsfacil
 
 Preencha tambem as chaves de API externas usadas pelo projeto.
 
+### `infra/backup/.env`
+
+Configure o backup:
+
+```env
+KOPIA_UI_USER=admin
+KOPIA_UI_PASSWORD=<senha-forte>
+KOPIA_REPOSITORY_PASSWORD=<senha-forte-e-diferente>
+MARIADB_CONTAINER=mariadb_global
+MARIADB_DATABASE=gpsjundi_bdgsfacil
+NPM_DB_CONTAINER=npm_db
+GDRIVE_FOLDER_ID=<folder-id-no-google-drive>
+GDRIVE_CREDENTIALS_FILE=/credentials/gdrive-service-account.json
+```
+
+Salve o JSON da Service Account em `infra/backup/credentials/gdrive-service-account.json`.
+
 ## 5. Ordem de subida
 
 Suba a infra principal primeiro. Ela cria a rede Docker compartilhada:
@@ -144,6 +162,12 @@ Suba o Nginx Proxy Manager:
 docker compose -f infra/nginx-proxy-manager/compose.yaml --env-file infra/nginx-proxy-manager/.env up -d
 ```
 
+Suba o backup com Kopia:
+
+```bash
+docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env up -d
+```
+
 Suba o runtime PHP:
 
 ```bash
@@ -154,6 +178,18 @@ Suba a API Node:
 
 ```bash
 docker compose -f node/apigsfacil/compose.yaml --env-file node/apigsfacil/.env up -d --build
+```
+
+Inicialize o repositorio Kopia no Google Drive (uma unica vez):
+
+```bash
+./infra/backup/scripts/init-gdrive-repo.sh
+```
+
+Teste um snapshot manual:
+
+```bash
+./infra/backup/scripts/snapshot-now.sh
 ```
 
 ## 6. Nginx Proxy Manager
@@ -209,6 +245,7 @@ Confirme:
 - Nenhuma porta de banco exposta no host.
 - Dominio acessando via HTTPS.
 - Painel NPM com senha trocada.
+- Snapshot Kopia criado com sucesso.
 
 ## 9. Atualizacao
 
@@ -220,3 +257,5 @@ docker compose -f infra/compose.yaml --env-file infra/.env up -d
 ```
 
 Para o NPM, revise antes a versao fixada em `infra/nginx-proxy-manager/compose.yaml`.
+
+Para o backup, veja `docs/backup-kopia-gdrive.md`.

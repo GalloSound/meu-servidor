@@ -8,6 +8,7 @@ Este repo versiona a infraestrutura que conecta os projetos PHP e Node, mas **na
 
 - `infra/compose.yaml`: MariaDB global, phpMyAdmin, Filebrowser e rede compartilhada.
 - `infra/nginx-proxy-manager/compose.yaml`: Nginx Proxy Manager e banco interno do NPM.
+- `infra/backup/compose.yaml`: stack de backup com Kopia.
 - `php/compose.yaml`: runtime PHP/Apache compartilhado.
 - `php/Dockerfile`: imagem PHP/Apache comum aos projetos PHP.
 - `php/www/`: arquivos compartilhados da raiz do Apache.
@@ -30,6 +31,10 @@ meu-servidor/
 │   ├── compose.yaml
 │   ├── .env.example
 │   ├── mariadb.cnf
+│   ├── backup/
+│   │   ├── compose.yaml
+│   │   ├── .env.example
+│   │   └── scripts/
 │   └── nginx-proxy-manager/
 │       ├── compose.yaml
 │       ├── .env.example
@@ -40,7 +45,8 @@ meu-servidor/
 │   ├── .env.example
 │   └── www/
 └── docs/
-    └── deploy-vps.md
+    ├── deploy-vps.md
+    └── backup-kopia-gdrive.md
 ```
 
 ## Uso local
@@ -50,6 +56,7 @@ Crie os arquivos `.env` a partir dos exemplos:
 ```bash
 cp infra/.env.example infra/.env
 cp infra/nginx-proxy-manager/.env.example infra/nginx-proxy-manager/.env
+cp infra/backup/.env.example infra/backup/.env
 cp php/.env.example php/.env
 ```
 
@@ -58,12 +65,13 @@ Suba primeiro a infra, depois o NPM e depois os runtimes/projetos:
 ```bash
 docker compose -f infra/compose.yaml --env-file infra/.env up -d
 docker compose -f infra/nginx-proxy-manager/compose.yaml --env-file infra/nginx-proxy-manager/.env up -d
+docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env up -d
 docker compose -f php/compose.yaml --env-file php/.env up -d
 ```
 
 ## Deploy no VPS
 
-Veja `docs/deploy-vps.md`.
+Veja `docs/deploy-vps.md` e `docs/backup-kopia-gdrive.md`.
 
 ## GitHub
 

@@ -5,6 +5,9 @@
 data/
 filebrowser/database/
 filebrowser/config/
+backup/data/
+backup/staging/
+backup/credentials/
 
 *.log
 *.sql
