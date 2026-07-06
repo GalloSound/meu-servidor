@@ -142,11 +142,17 @@ KOPIA_REPOSITORY_PASSWORD=<senha-forte-e-diferente>
 MARIADB_CONTAINER=mariadb_global
 MARIADB_DATABASE=gpsjundi_bdgsfacil
 NPM_DB_CONTAINER=npm_db
-GDRIVE_FOLDER_ID=<folder-id-no-google-drive>
-GDRIVE_CREDENTIALS_FILE=/credentials/gdrive-service-account.json
+RCLONE_REMOTE_NAME=gdrive
+RCLONE_REMOTE_PATH=Backups/meu-servidor
+BACKUP_FULL_ENABLED=true
+BACKUP_FULL_SOURCES=php,node,infra,docs,README.md
 ```
 
-Salve o JSON da Service Account em `infra/backup/credentials/gdrive-service-account.json`.
+Para Google Drive pessoal, use Rclone OAuth e copie o arquivo em:
+
+```text
+infra/backup/rclone/rclone.conf
+```
 
 ## 5. Ordem de subida
 
@@ -165,7 +171,7 @@ docker compose -f infra/nginx-proxy-manager/compose.yaml --env-file infra/nginx-
 Suba o backup com Kopia:
 
 ```bash
-docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env up -d
+docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env up -d --build
 ```
 
 Suba o runtime PHP:

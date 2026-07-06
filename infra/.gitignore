@@ -7,6 +7,7 @@ filebrowser/database/
 filebrowser/config/
 backup/data/
 backup/staging/
+backup/rclone/
 backup/credentials/
 
 *.log

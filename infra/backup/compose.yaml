@@ -1,11 +1,18 @@
 services:
   kopia_backup:
-    image: "kopia/kopia:${KOPIA_IMAGE_TAG:-0.23.1}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        KOPIA_IMAGE_TAG: ${KOPIA_IMAGE_TAG:-0.23.1}
+        RCLONE_IMAGE_TAG: ${RCLONE_IMAGE_TAG:-1.69}
+    image: "meu-servidor/kopia-rclone:${KOPIA_IMAGE_TAG:-0.23.1}"
     container_name: kopia_backup
     restart: unless-stopped
     command:
       - server
       - start
+      - --insecure
       - --address=0.0.0.0:51515
       - --server-username=${KOPIA_UI_USER}
       - --server-password=${KOPIA_UI_PASSWORD}
@@ -14,6 +21,7 @@ services:
       TZ: ${TZ:-America/Sao_Paulo}
       KOPIA_PASSWORD: ${KOPIA_REPOSITORY_PASSWORD}
       USER: ${KOPIA_SYSTEM_USER:-backup}
+      RCLONE_CONFIG: ${RCLONE_CONFIG:-/rclone/rclone.conf}
     ports:
       - "127.0.0.1:${KOPIA_UI_PORT:-51515}:51515"
     volumes:
@@ -21,5 +29,5 @@ services:
       - ./data/cache:/app/cache
       - ./data/logs:/app/logs
       - ./staging:/staging
-      - ./credentials:/credentials:ro
+      - ./rclone:/rclone:ro
 
