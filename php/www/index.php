@@ -17,6 +17,11 @@ $projects = [
         'description' => 'Frontend PHP do ecossistema',
         'url' => '/gsfacilfront/public/',
     ],
+    [
+        'name' => 'Gallo Sound Site',
+        'description' => 'Site institucional publico da empresa',
+        'url' => '/gallosoundsite/',
+    ],
 ];
 ?>
 <!DOCTYPE html>

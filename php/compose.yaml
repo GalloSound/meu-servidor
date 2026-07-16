@@ -18,6 +18,7 @@ services:
       - ./gsfacilFront:/var/www/html/gsfacilfront
       - ./googlecalendar:/var/www/html/googlecalendar
       - ./peoplecontacts:/var/www/html/peoplecontacts
+      - ./gallosoundsite:/var/www/html/gallosoundsite:ro
       - php_sessions:/tmp/php-sessions
     environment:
       TZ: America/Sao_Paulo
@@ -31,6 +32,7 @@ services:
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8082/app_sistema/}
       APP_BASE_URL_NEW: ${APP_BASE_URL_NEW:-http://localhost:8082/gsfacilfront/public/}
       APP_BASE_URL_PEOPLECONTACTS: ${APP_BASE_URL_PEOPLECONTACTS:-http://localhost:8082/peoplecontacts/}
+      APP_BASE_URL_GALLOSOUNDSITE: ${APP_BASE_URL_GALLOSOUNDSITE:-http://localhost:8082/gallosoundsite/}
       GOOGLE_CONTACTS_CLIENT_ID: ${GOOGLE_CONTACTS_CLIENT_ID:-}
       GOOGLE_CONTACTS_CLIENT_SECRET: ${GOOGLE_CONTACTS_CLIENT_SECRET:-}
       GOOGLE_CONTACTS_REFRESH_TOKEN: ${GOOGLE_CONTACTS_REFRESH_TOKEN:-}

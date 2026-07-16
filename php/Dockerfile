@@ -53,7 +53,9 @@ RUN printf '%s\n' \
     '    Alias /gsfacilFront/public /var/www/html/gsfacilfront/public' \
     '    Alias /googlecalendar /var/www/html/googlecalendar' \
     '    Alias /peoplecontacts /var/www/html/peoplecontacts' \
+    '    Alias /gallosoundsite /var/www/html/gallosoundsite' \
     '    Alias /apicontacts /var/www/html/peoplecontacts/public_html/apicontacts' \
+    '    RedirectMatch 403 ^/gallosoundsite/(\\.git|\\.cursor|\\.svn|\\.hg)(/|$)' \
     '' \
     '    DirectoryIndex index.php' \
     '' \
@@ -61,6 +63,17 @@ RUN printf '%s\n' \
     '        Options FollowSymLinks' \
     '        AllowOverride All' \
     '        Require all granted' \
+    '    </Directory>' \
+    '' \
+    '    # Public site hardening: block infra/repo leaks under this alias.' \
+    '    <Directory /var/www/html/gallosoundsite>' \
+    '        Options FollowSymLinks' \
+    '        AllowOverride All' \
+    '        Require all granted' \
+    '' \
+    '        <FilesMatch "(^\\.|^Config(\\.php|_exemple\\.php)$|^sftp-config\\.json$|\\.sql$|\\.bak$|\\.env$|\\.ini$|\\.log$)">' \
+    '            Require all denied' \
+    '        </FilesMatch>' \
     '    </Directory>' \
     '' \
     '    ErrorLog ${APACHE_LOG_DIR}/error.log' \
@@ -77,6 +90,7 @@ RUN printf '%s\n' \
     'ln -sfn /var/www/html/app_nf /var/www/app_nf' \
     'ln -sfn /var/www/html/gsfacilfront /var/www/gsfacilfront' \
     'ln -sfn /var/www/html/peoplecontacts /var/www/peoplecontacts' \
+    'ln -sfn /var/www/html/gallosoundsite /var/www/gallosoundsite' \
     '' \
     'if [ -f /var/www/html/app/composer.json ] && [ ! -f /var/www/html/app/vendor/autoload.php ]; then' \
     '    composer install --working-dir=/var/www/html/app --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader' \
