@@ -13,6 +13,11 @@ $projects = [
         'url' => '/app_nf/',
     ],
     [
+        'name' => 'APP Sistema',
+        'description' => 'PHP legado (versão anterior)',
+        'url' => '/app_sistema/',
+    ],
+    [
         'name' => 'GsFacil Front',
         'description' => 'Frontend PHP do ecossistema',
         'url' => '/gsfacilfront/public/',

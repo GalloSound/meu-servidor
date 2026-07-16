@@ -88,6 +88,17 @@ RUN printf '%s\n' \
     '#!/bin/sh' \
     'set -e' \
     '' \
+    'composer_bootstrap() {' \
+    '    dir="$1"' \
+    '    if [ ! -f "$dir/composer.json" ] || [ -f "$dir/vendor/autoload.php" ]; then' \
+    '        return 0' \
+    '    fi' \
+    '    if ! composer install --working-dir="$dir" --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader; then' \
+    '        echo "composer install failed in $dir; trying composer update..."' \
+    '        composer update --working-dir="$dir" --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader' \
+    '    fi' \
+    '}' \
+    '' \
     'mkdir -p /tmp/php-sessions' \
     'ln -sfn /var/www/html/app /var/www/app' \
     'ln -sfn /var/www/html/app_nf /var/www/app_nf' \
@@ -95,25 +106,11 @@ RUN printf '%s\n' \
     'ln -sfn /var/www/html/peoplecontacts /var/www/peoplecontacts' \
     'ln -sfn /var/www/html/gallosoundsite /var/www/gallosoundsite' \
     '' \
-    'if [ -f /var/www/html/app/composer.json ] && [ ! -f /var/www/html/app/vendor/autoload.php ]; then' \
-    '    composer install --working-dir=/var/www/html/app --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader' \
-    'fi' \
-    '' \
-    'if [ -f /var/www/html/app_nf/composer.json ] && [ ! -f /var/www/html/app_nf/vendor/autoload.php ]; then' \
-    '    composer install --working-dir=/var/www/html/app_nf --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader' \
-    'fi' \
-    '' \
-    'if [ -f /var/www/html/app_sistema/composer.json ] && [ ! -f /var/www/html/app_sistema/vendor/autoload.php ]; then' \
-    '    composer install --working-dir=/var/www/html/app_sistema --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader' \
-    'fi' \
-    '' \
-    'if [ -f /var/www/html/gsfacilfront/composer.json ] && [ ! -f /var/www/html/gsfacilfront/vendor/autoload.php ]; then' \
-    '    composer install --working-dir=/var/www/html/gsfacilfront --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader' \
-    'fi' \
-    '' \
-    'if [ -f /var/www/html/peoplecontacts/composer.json ] && [ ! -f /var/www/html/peoplecontacts/vendor/autoload.php ]; then' \
-    '    composer install --working-dir=/var/www/html/peoplecontacts --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader' \
-    'fi' \
+    'composer_bootstrap /var/www/html/app' \
+    'composer_bootstrap /var/www/html/app_nf' \
+    'composer_bootstrap /var/www/html/app_sistema' \
+    'composer_bootstrap /var/www/html/gsfacilfront' \
+    'composer_bootstrap /var/www/html/peoplecontacts' \
     '' \
     'exec apache2-foreground' \
     > /usr/local/bin/meu-servidor-php-entrypoint \
