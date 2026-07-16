@@ -12,14 +12,17 @@ RUN apt-get update \
         libicu-dev \
         libjpeg62-turbo-dev \
         libpng-dev \
+        libxml2-dev \
         libzip-dev \
         unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
+        bcmath \
         gd \
         intl \
         mysqli \
         pdo_mysql \
+        soap \
         zip \
     && a2enmod rewrite headers \
     && printf '%s\n' 'ServerName localhost' > /etc/apache2/conf-available/servername.conf \
