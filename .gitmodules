@@ -1,0 +1,3 @@
+[submodule "node/apigsfacil"]
+	path = node/apigsfacil
+	url = https://github.com/GalloSound/apigsfacil.git

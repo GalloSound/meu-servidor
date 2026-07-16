@@ -33,7 +33,6 @@ php/gallosoundsite/
 php/googlecalendar/
 php/gsfacilFront/
 php/peoplecontacts/
-node/apigsfacil/
 
 # Mantem apenas os arquivos da plataforma compartilhada
 !php/
