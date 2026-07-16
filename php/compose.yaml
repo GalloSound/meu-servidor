@@ -26,7 +26,7 @@ services:
       DB_HOST: ${DB_HOST:-mariadb_global}
       DB_DATABASE: ${DB_DATABASE:-gpsjundi_bdgsfacil}
       DB_USER: ${DB_USER:-root}
-      DB_PASS: ${DB_PASS}
+      DB_PASS: ${DB_PASS:-BdGsFacil@2026}
       APP_BASE_URL_APP: ${APP_BASE_URL_APP:-http://localhost:8082/app/}
       APP_BASE_URL_APP_NF: ${APP_BASE_URL_APP_NF:-http://localhost:8082/app_nf/}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8082/app_sistema/}
