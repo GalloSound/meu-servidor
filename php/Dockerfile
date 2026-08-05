@@ -102,6 +102,7 @@ RUN printf '%s\n' \
     'mkdir -p /tmp/php-sessions' \
     'ln -sfn /var/www/html/app /var/www/app' \
     'ln -sfn /var/www/html/app_nf /var/www/app_nf' \
+    'ln -sfn /var/www/html/app_sistema /var/www/app_sistema' \
     'ln -sfn /var/www/html/gsfacilfront /var/www/gsfacilfront' \
     'ln -sfn /var/www/html/peoplecontacts /var/www/peoplecontacts' \
     'ln -sfn /var/www/html/gallosoundsite /var/www/gallosoundsite' \
