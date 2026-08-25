@@ -36,7 +36,7 @@ services:
     container_name: filebrowser_global
     restart: unless-stopped
     ports:
-      - "${FILEBROWSER_PORT:-8083}:80"
+      - "127.0.0.1:${FILEBROWSER_PORT:-8083}:80"
     environment:
       PUID: ${FILEBROWSER_PUID:-501}
       PGID: ${FILEBROWSER_PGID:-20}
