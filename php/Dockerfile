@@ -58,6 +58,7 @@ RUN printf '%s\n' \
     '    Alias /peoplecontacts /var/www/html/peoplecontacts' \
     '    Alias /gallosoundsite /var/www/html/gallosoundsite' \
     '    Alias /apicontacts /var/www/html/peoplecontacts/public_html/apicontacts' \
+    '    Alias /gcar /var/www/html/googlecalendar/public_html/gcar' \
     '    RedirectMatch 403 ^/gallosoundsite/(\\.git|\\.cursor|\\.svn|\\.hg)(/|$)' \
     '' \
     '    DirectoryIndex index.php' \
