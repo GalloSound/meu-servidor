@@ -8,7 +8,7 @@ services:
     container_name: php_global
     restart: unless-stopped
     ports:
-      - "${PHP_RUNTIME_PORT:-8082}:80"
+      - "127.0.0.1:${PHP_RUNTIME_PORT:-8082}:80"
     volumes:
       - ./www/index.php:/var/www/html/index.php:ro
       - ./www/.htaccess:/var/www/html/.htaccess:ro
