@@ -4,8 +4,8 @@ services:
     container_name: mariadb_global
     restart: always
     environment:
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-      MARIADB_DATABASE: ${MARIADB_DATABASE:-banco_inicial}
+      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?Defina MARIADB_ROOT_PASSWORD em infra/.env}"
+      MARIADB_DATABASE: "${MARIADB_DATABASE:?Defina MARIADB_DATABASE em infra/.env}"
     volumes:
       - ./data:/var/lib/mysql:Z
       - ./mariadb.cnf:/etc/mysql/conf.d/custom.cnf:ro
@@ -25,7 +25,7 @@ services:
       MEMORY_LIMIT: 512M
       MAX_EXECUTION_TIME: 600
     ports:
-      - "127.0.0.1:${PHPMYADMIN_PORT:-8080}:80"
+      - "127.0.0.1:${PHPMYADMIN_PORT:?Defina PHPMYADMIN_PORT em infra/.env}:80"
     networks:
       - rede-banco-global
     depends_on:
@@ -36,10 +36,10 @@ services:
     container_name: filebrowser_global
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${FILEBROWSER_PORT:-8083}:80"
+      - "127.0.0.1:${FILEBROWSER_PORT:?Defina FILEBROWSER_PORT em infra/.env}:80"
     environment:
-      PUID: ${FILEBROWSER_PUID:-501}
-      PGID: ${FILEBROWSER_PGID:-20}
+      PUID: "${FILEBROWSER_PUID:?Defina FILEBROWSER_PUID em infra/.env}"
+      PGID: "${FILEBROWSER_PGID:?Defina FILEBROWSER_PGID em infra/.env}"
       TZ: America/Sao_Paulo
     volumes:
       - ..:/srv/meu-servidor
@@ -50,7 +50,7 @@ services:
 networks:
   rede-banco-global:
     driver: bridge
-    name: ${DOCKER_NETWORK:-rede-banco-global}  # Define o nome fixo da rede para os projetos
+    name: "${DOCKER_NETWORK:?Defina DOCKER_NETWORK em infra/.env}"
 
 # PHP
 # $host = 'mariadb_global'; // O Docker resolve o nome do container como IP automaticamente!

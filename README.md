@@ -1,84 +1,56 @@
 # meu-servidor-platform
 
-Repositorio da plataforma Docker compartilhada do ambiente `meu-servidor`.
+Plataforma Docker compartilhada do ambiente `meu-servidor`. Os mesmos `compose.yaml` e `Dockerfile` sao usados no Docker Desktop do Mac e no Docker da VPS; somente os arquivos `.env` reais mudam.
 
-Este repo versiona a infraestrutura que conecta os projetos PHP e Node, mas **nao versiona o codigo dos projetos de aplicacao**, pois eles continuam em repositorios independentes.
-
-## O que este repo versiona
+## Stacks e projetos
 
 - `infra/compose.yaml`: MariaDB global, phpMyAdmin, Filebrowser e rede compartilhada.
-- `infra/nginx-proxy-manager/compose.yaml`: Nginx Proxy Manager e banco interno do NPM.
-- `infra/backup/compose.yaml`: stack de backup com Kopia.
-- `php/compose.yaml`: runtime PHP/Apache compartilhado.
-- `php/Dockerfile`: imagem PHP/Apache comum aos projetos PHP.
-- `php/www/`: arquivos compartilhados da raiz do Apache.
-- `docs/`: documentacao de deploy e operacao.
+- `infra/nginx-proxy-manager/`: Nginx Proxy Manager e seu banco interno.
+- `infra/backup/`: backup com Kopia.
+- `php/compose.yaml` e `php/Dockerfile`: runtime Apache/PHP compartilhado.
+- `node/apigsfacil/`: API Node em container proprio.
+- `docs/`: deploy e operacao.
 
-## O que nao deve ser versionado
+O repositorio da plataforma nao versiona o codigo das aplicacoes em `php/app*`, `php/gsfacilFront`, `php/googlecalendar`, `php/peoplecontacts` e `node/apigsfacil`; esses diretorios possuem repositorios independentes.
 
-- Arquivos `.env` reais.
-- Dados persistentes do MariaDB.
-- Dados e certificados do Nginx Proxy Manager.
-- Banco/configuracao do Filebrowser.
-- Dumps, backups e arquivos compactados.
-- Codigo dos projetos em `php/app_*`, `php/gsfacilFront`, `php/googlecalendar`, `php/peoplecontacts` e `node/apigsfacil`.
+## Configuracao por ambiente
 
-## Estrutura
-
-```text
-meu-servidor/
-├── infra/
-│   ├── compose.yaml
-│   ├── .env.example
-│   ├── mariadb.cnf
-│   ├── backup/
-│   │   ├── compose.yaml
-│   │   ├── .env.example
-│   │   └── scripts/
-│   └── nginx-proxy-manager/
-│       ├── compose.yaml
-│       ├── .env.example
-│       └── README.md
-├── php/
-│   ├── compose.yaml
-│   ├── Dockerfile
-│   ├── .env.example
-│   └── www/
-└── docs/
-    ├── deploy-vps.md
-    └── backup-kopia-gdrive.md
-```
-
-## Uso local
-
-Crie os arquivos `.env` a partir dos exemplos:
+Cada stack possui exatamente um `.env.example`. Copie-o para `.env` no mesmo diretorio e edite apenas a copia:
 
 ```bash
 cp infra/.env.example infra/.env
 cp infra/nginx-proxy-manager/.env.example infra/nginx-proxy-manager/.env
 cp infra/backup/.env.example infra/backup/.env
 cp php/.env.example php/.env
+cp node/apigsfacil/.env.example node/apigsfacil/.env
 ```
 
-Suba primeiro a infra, depois o NPM e depois os runtimes/projetos:
+Nao crie `.env.dev`, `.env.prod` ou variantes do Compose. Os `.env` reais nunca devem ser versionados.
+
+As diferencas permitidas entre Mac e VPS sao valores de ambiente: senhas/tokens, URLs, portas, bind HTTP/HTTPS do NPM, IDs de usuario/grupo e identificacao do ambiente. Imagens, Dockerfiles, mounts, servicos e redes permanecem iguais.
+
+No Mac, o exemplo do NPM publica HTTP/HTTPS somente em `127.0.0.1`. Na VPS, altere `NPM_HTTP_BIND` e `NPM_HTTPS_BIND` para `0.0.0.0`; o painel administrativo continua sempre em `127.0.0.1`.
+
+## Ordem de subida
 
 ```bash
 docker compose -f infra/compose.yaml --env-file infra/.env up -d
 docker compose -f infra/nginx-proxy-manager/compose.yaml --env-file infra/nginx-proxy-manager/.env up -d
-docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env up -d
-docker compose -f php/compose.yaml --env-file php/.env up -d
+docker compose -f php/compose.yaml --env-file php/.env up -d --build
+docker compose -f node/apigsfacil/compose.yaml --env-file node/apigsfacil/.env up -d --build
+docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env up -d --build
 ```
 
-## Deploy no VPS
+A infra deve subir primeiro porque cria `rede-banco-global`. NPM, PHP, Node e backup dependem dela. Para detalhes de VPS, tunel SSH e troca de servidor, consulte `docs/deploy-vps.md`.
 
-Veja `docs/deploy-vps.md` e `docs/backup-kopia-gdrive.md`.
+## Seguranca e versionamento
 
-## GitHub
+MariaDB nao publica porta no host. phpMyAdmin, Filebrowser, PHP e API Node usam `127.0.0.1`; o painel do NPM tambem fica restrito a localhost.
 
-Antes de subir, confira:
+Antes de enviar alteracoes:
 
 ```bash
 git status --ignored
 ```
 
-Arquivos `.env`, `data/`, dumps e projetos independentes nao devem aparecer como arquivos versionaveis.
+Arquivos `.env`, dados persistentes, certificados, dumps, backups e codigos dos projetos independentes nao devem aparecer como arquivos versionaveis.
