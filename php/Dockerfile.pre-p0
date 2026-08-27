@@ -54,46 +54,18 @@ RUN printf '%s\n' \
     '    Alias /app_sistema /var/www/html/app_sistema' \
     '    Alias /gsfacilfront/public /var/www/html/gsfacilfront/public' \
     '    Alias /gsfacilFront/public /var/www/html/gsfacilfront/public' \
+    '    Alias /googlecalendar /var/www/html/googlecalendar' \
+    '    Alias /peoplecontacts /var/www/html/peoplecontacts' \
     '    Alias /gallosoundsite /var/www/html/gallosoundsite' \
     '    Alias /apicontacts /var/www/html/peoplecontacts/public_html/apicontacts' \
     '    Alias /gcar /var/www/html/googlecalendar/public_html/gcar' \
-    '' \
-    '    # P0: private project trees are never HTTP namespaces.' \
-    '    RedirectMatch 403 "(?i)^/(googlecalendar|peoplecontacts)(/|$)"' \
-    '' \
-    '    # P0: deny repository metadata, secrets, private data and backup/dump files globally.' \
-    '    RedirectMatch 403 "(?i)(^|/)(\\.git|\\.cursor|\\.svn|\\.hg|secure-data)(/|$)"' \
-    '    RedirectMatch 403 "(?i)(^|/)(\\.env([^/]*)?|credentials\\.json|token[^/]*\\.json|sftp-config\\.json|config[^/]*\\.(php|json)|environment\\.php|composer\\.(json|lock)|[^/]*\\.(sql|dump|bak|backup|old|orig|save)(\\.[^/]*)?|[^/]*~)$"' \
+    '    RedirectMatch 403 ^/gallosoundsite/(\\.git|\\.cursor|\\.svn|\\.hg)(/|$)' \
     '' \
     '    DirectoryIndex index.php' \
     '' \
     '    <Directory /var/www/html>' \
     '        Options FollowSymLinks' \
     '        AllowOverride All' \
-    '        Require all granted' \
-    '    </Directory>' \
-    '' \
-    '    # Deny the mounted private projects at filesystem level too.' \
-    '    <Directory /var/www/html/googlecalendar>' \
-    '        AllowOverride None' \
-    '        Require all denied' \
-    '    </Directory>' \
-    '' \
-    '    <Directory /var/www/html/peoplecontacts>' \
-    '        AllowOverride None' \
-    '        Require all denied' \
-    '    </Directory>' \
-    '' \
-    '    # Only these wrapper directories may be served through their aliases.' \
-    '    <Directory /var/www/html/googlecalendar/public_html/gcar>' \
-    '        Options FollowSymLinks' \
-    '        AllowOverride None' \
-    '        Require all granted' \
-    '    </Directory>' \
-    '' \
-    '    <Directory /var/www/html/peoplecontacts/public_html/apicontacts>' \
-    '        Options FollowSymLinks' \
-    '        AllowOverride None' \
     '        Require all granted' \
     '    </Directory>' \
     '' \
