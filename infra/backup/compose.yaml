@@ -14,12 +14,12 @@ services:
       - start
       - --insecure
       - --address=0.0.0.0:51515
-      - --server-username=${KOPIA_UI_USER}
-      - --server-password=${KOPIA_UI_PASSWORD}
+      - --server-username=${KOPIA_UI_USER:?Defina KOPIA_UI_USER em infra/backup/.env}
+      - --server-password=${KOPIA_UI_PASSWORD:?Defina KOPIA_UI_PASSWORD em infra/backup/.env}
       - --ui
     environment:
       TZ: ${TZ:-America/Sao_Paulo}
-      KOPIA_PASSWORD: ${KOPIA_REPOSITORY_PASSWORD}
+      KOPIA_PASSWORD: ${KOPIA_REPOSITORY_PASSWORD:?Defina KOPIA_REPOSITORY_PASSWORD em infra/backup/.env}
       USER: ${KOPIA_SYSTEM_USER:-backup}
       RCLONE_CONFIG: ${RCLONE_CONFIG:-/rclone/rclone.conf}
     ports:

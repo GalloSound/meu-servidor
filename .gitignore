@@ -7,6 +7,10 @@
 .env
 .env.*
 !.env.example
+credentials.json
+token*.json
+secure-data/
+sftp-config.json
 
 # Dados persistentes e arquivos gerados
 infra/data/

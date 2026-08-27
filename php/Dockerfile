@@ -117,6 +117,20 @@ RUN printf '%s\n' \
     '#!/bin/sh' \
     'set -e' \
     '' \
+    'required_vars="DB_HOST DB_DATABASE DB_USER DB_PASS GOOGLE_CALENDAR_CLIENT_ID GOOGLE_CALENDAR_CLIENT_SECRET GOOGLE_CALENDAR_REDIRECT_URI GOOGLE_CALENDAR_TOKEN_PATH GOOGLE_CONTACTS_CLIENT_ID GOOGLE_CONTACTS_CLIENT_SECRET GOOGLE_CONTACTS_REFRESH_TOKEN GOOGLE_CONTACTS_REDIRECT_URI GOOGLE_CONTACTS_TOKEN_PATH"' \
+    'for name in $required_vars; do' \
+    '    value="$(printenv "$name" || true)"' \
+    '    if [ -z "$value" ]; then' \
+    '        echo "Configuração obrigatória ausente: $name" >&2' \
+    '        exit 1' \
+    '    fi' \
+    'done' \
+    '' \
+    'if [ ! -f "$GOOGLE_CALENDAR_TOKEN_PATH" ]; then' \
+    '    echo "Arquivo secreto obrigatório ausente: GOOGLE_CALENDAR_TOKEN_PATH" >&2' \
+    '    exit 1' \
+    'fi' \
+    '' \
     'composer_bootstrap() {' \
     '    dir="$1"' \
     '    if [ ! -f "$dir/composer.json" ] || [ -f "$dir/vendor/autoload.php" ]; then' \
