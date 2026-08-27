@@ -59,7 +59,7 @@ RUN printf '%s\n' \
     '    Alias /gcar /var/www/html/googlecalendar/public_html/gcar' \
     '' \
     '    # P0: private project trees are never HTTP namespaces.' \
-    '    RedirectMatch 403 "(?i)^/(googlecalendar|peoplecontacts)(/|$)"' \
+    '    RedirectMatch 403 "(?i)^/(googlecalendar|peoplecontacts|shared)(/|$)"' \
     '' \
     '    # P0: deny repository metadata, secrets, private data and backup/dump files globally.' \
     '    RedirectMatch 403 "(?i)(^|/)(\\.git|\\.cursor|\\.svn|\\.hg|secure-data)(/|$)"' \
@@ -71,6 +71,12 @@ RUN printf '%s\n' \
     '        Options FollowSymLinks' \
     '        AllowOverride All' \
     '        Require all granted' \
+    '    </Directory>' \
+    '' \
+    '    # Shared PHP libraries are not an HTTP namespace.' \
+    '    <Directory /var/www/html/shared>' \
+    '        AllowOverride None' \
+    '        Require all denied' \
     '    </Directory>' \
     '' \
     '    # Deny the mounted private projects at filesystem level too.' \

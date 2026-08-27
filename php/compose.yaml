@@ -12,6 +12,7 @@ services:
     volumes:
       - ./www/index.php:/var/www/html/index.php:ro
       - ./www/.htaccess:/var/www/html/.htaccess:ro
+      - ./shared:/var/www/html/shared:ro
       - ./app:/var/www/html/app
       - ./app_nf:/var/www/html/app_nf
       - ./app_sistema:/var/www/html/app_sistema
