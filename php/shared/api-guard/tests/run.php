@@ -21,6 +21,9 @@ final class ApiSessionGuardTest
         $this->testAuthorizedUserSucceeds();
         $this->testUserWithoutPermissionReturns403();
         $this->testOptionsRejectsArbitraryOrigin();
+        $this->testNodeActionAuthorized();
+        $this->testNodeActionWithoutPermission();
+        $this->testNodeDivergentTenant();
 
         echo $this->passed . ' passed, ' . $this->failed . ' failed' . PHP_EOL;
         foreach ($this->failures as $failure) {
@@ -132,6 +135,55 @@ final class ApiSessionGuardTest
         });
     }
 
+    private function testNodeActionAuthorized(): void
+    {
+        try {
+            $context = $this->guard([
+                'session' => [
+                    'token' => 'tok-ok',
+                    ApiSessionGuard::CSRF_SESSION_KEY => 'csrf-ok',
+                ],
+                'post' => ['empresaID' => '5', 'placa' => 'ABC1D23'],
+                'headers' => ['X-CSRF-Token' => 'csrf-ok'],
+            ])->assert(ApiSessionGuard::ACTION_NODE_CONSULTA_PLACA);
+
+            $this->assertTrue(
+                $context['empresaId'] === 5,
+                'node consultaplaca autorizado'
+            );
+        } catch (Throwable $e) {
+            $this->fail('node consultaplaca autorizado', $e->getMessage());
+        }
+    }
+
+    private function testNodeActionWithoutPermission(): void
+    {
+        $this->expectDenied('node sem permissão: 403', 403, 'forbidden', function (): void {
+            $this->guard([
+                'session' => [
+                    'token' => 'tok-noperm',
+                    ApiSessionGuard::CSRF_SESSION_KEY => 'csrf-ok',
+                ],
+                'post' => ['code' => 'AB123'],
+                'headers' => ['X-CSRF-Token' => 'csrf-ok'],
+            ])->assert(ApiSessionGuard::ACTION_NODE_RASTREIO_COD);
+        });
+    }
+
+    private function testNodeDivergentTenant(): void
+    {
+        $this->expectDenied('node tenant divergente: 403', 403, 'tenant', function (): void {
+            $this->guard([
+                'session' => [
+                    'token' => 'tok-ok',
+                    ApiSessionGuard::CSRF_SESSION_KEY => 'csrf-ok',
+                ],
+                'post' => ['empresaID' => '99', 'user' => '2', 'descricao' => 'x', 'valor' => '10'],
+                'headers' => ['X-CSRF-Token' => 'csrf-ok'],
+            ])->assert(ApiSessionGuard::ACTION_NODE_INSERT_DIV);
+        });
+    }
+
     /**
      * @param array<string, mixed> $overrides
      */
@@ -199,10 +251,16 @@ final class ApiSessionGuardTest
         $pdo->exec("INSERT INTO permission_itens (id, slug) VALUES
             (1, 'visualizar_orcamentos'),
             (2, 'external_access'),
-            (3, 'exemplo')");
+            (3, 'exemplo'),
+            (4, 'visualizar_financeiro'),
+            (5, 'entrada_estoque'),
+            (6, 'visualizar_veiculos_clientes')");
         $pdo->exec('INSERT INTO permission_links (id_permission_group, id_permission_item, empresaID) VALUES
             (2, 1, 1),
             (2, 2, 1),
+            (2, 4, 1),
+            (2, 5, 1),
+            (2, 6, 1),
             (3, 2, 1),
             (3, 3, 1)');
 

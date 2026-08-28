@@ -29,6 +29,11 @@ final class ApiSessionGuard
     public const ACTION_CONTACTS_CREATE = 'contacts.create';
     public const ACTION_CONTACTS_EDIT = 'contacts.edit';
     public const ACTION_CALENDAR_OAUTH = 'calendar.oauth';
+    public const ACTION_NODE_CONSULTA_PLACA = 'node.consultaplaca';
+    public const ACTION_NODE_RASTREIO = 'node.rastreio';
+    public const ACTION_NODE_RASTREIO_COD = 'node.rastreiocod';
+    public const ACTION_NODE_INSERT_DIV = 'node.insertdiv';
+    public const ACTION_NODE_ADD_CLIENTE_FAST = 'node.addclientefast';
 
     public const CSRF_SESSION_KEY = 'csrf_token';
     public const CSRF_HEADER = 'X-CSRF-Token';
@@ -46,6 +51,11 @@ final class ApiSessionGuard
         self::ACTION_CONTACTS_CREATE => ['visualizar_veiculos_clientes', 'visualizar_orcamentos'],
         self::ACTION_CONTACTS_EDIT => ['visualizar_veiculos_clientes', 'visualizar_orcamentos'],
         self::ACTION_CALENDAR_OAUTH => ['desenvolvedor_piloto'],
+        self::ACTION_NODE_CONSULTA_PLACA => ['visualizar_veiculos_clientes', 'visualizar_orcamentos'],
+        self::ACTION_NODE_RASTREIO => ['entrada_estoque'],
+        self::ACTION_NODE_RASTREIO_COD => ['entrada_estoque'],
+        self::ACTION_NODE_INSERT_DIV => ['visualizar_financeiro'],
+        self::ACTION_NODE_ADD_CLIENTE_FAST => ['visualizar_veiculos_clientes', 'visualizar_orcamentos'],
     ];
 
     /** @var array<string, mixed> */

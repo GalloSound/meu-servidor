@@ -126,7 +126,7 @@ RUN printf '%s\n' \
     '#!/bin/sh' \
     'set -e' \
     '' \
-    'required_vars="DB_HOST DB_DATABASE DB_USER DB_PASS"' \
+    'required_vars="DB_HOST DB_DATABASE DB_USER DB_PASS INTERNAL_API_URL INTERNAL_API_SECRET"' \
     'if [ "${APP_ENV:-}" = "production" ]; then' \
     '    required_vars="$required_vars GOOGLE_CALENDAR_CLIENT_ID GOOGLE_CALENDAR_CLIENT_SECRET GOOGLE_CALENDAR_REDIRECT_URI GOOGLE_CALENDAR_TOKEN_PATH GOOGLE_CONTACTS_CLIENT_ID GOOGLE_CONTACTS_CLIENT_SECRET GOOGLE_CONTACTS_REFRESH_TOKEN"' \
     'fi' \

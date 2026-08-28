@@ -129,8 +129,8 @@ APP_BASE_URL_GALLOSOUNDSITE=https://gallosound.com.br/
 BASE_DIR=/gsfacilfront/public
 BASE_URL_IMAGES=/app_sistema/
 BASE_APP=/app/
-BASE_API_GSFACIL=https://api.seudominio.com.br/api/
-BASE_API_RASTREIO=https://atualizacaogpsjundiai.com.br/devnotes/api/rastreio/
+INTERNAL_API_URL=http://apigsfacil:4000
+INTERNAL_API_SECRET=<mesmo-valor-do-node>
 BASE_URL_API_CONTACTS=/gcar/
 BASE_URL_API_PEOPLECONTACTS=/peoplecontacts/public_html/apicontacts/
 ```
@@ -148,7 +148,8 @@ DB_PASS=<mesma-senha-do-MARIADB_ROOT_PASSWORD>
 DB_NAME=gpsjundi_bdgsfacil
 ```
 
-Preencha tambem as chaves de API externas usadas pelo projeto.
+Preencha tambem as chaves de API externas usadas pelo projeto e o
+`INTERNAL_API_SECRET` (o mesmo valor configurado em `php/.env`).
 
 ### `infra/backup/.env`
 
@@ -262,8 +263,12 @@ Crie os Proxy Hosts apontando para os nomes dos containers na rede Docker:
 
 ```text
 php_global:80
-apigsfacil:4000
 ```
+
+Não publique `apigsfacil:4000` na internet. O gsfacilFront chama a API Node
+pela rede Docker (`INTERNAL_API_URL=http://apigsfacil:4000`). A Custom Location
+pública `/api` só deve ser removida depois do checklist em
+`docs/api-php-node-proxy.md`.
 
 Ative SSL via Let's Encrypt para os dominios publicos.
 

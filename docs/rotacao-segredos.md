@@ -88,10 +88,18 @@ Checklist:
 
 ## Senha temporária de manutenção
 
-- Gere um valor longo e aleatório para `API_MAINTENANCE_PASS`.
+`API_MAINTENANCE_PASS` deixou de autenticar requests. A credencial ativa entre
+PHP e Node é `INTERNAL_API_SECRET` (HMAC). Mantenha `API_MAINTENANCE_PASS` no
+`.env` só enquanto o fail-fast ainda a exigir; não a coloque no JavaScript.
+
+## Credencial interna PHP → apigsfacil
+
+- Gere um valor longo e aleatório para `INTERNAL_API_SECRET`.
+- Copie o **mesmo** valor para `php/.env` e `node/apigsfacil/.env`.
 - Distribua-o apenas por um cofre de segredos.
-- Trate essa senha como transição. Substitua o parâmetro `pass` por autenticação
-  de usuário ou serviço, autorização por rota, expiração e auditoria.
+- Depois da troca, recrie `php_global` e `apigsfacil`.
+- Confira que o JS público não contém o novo valor.
+- Revogue o valor anterior assim que o smoke autenticado passar.
 
 ## Plano de limpeza do histórico Git
 
