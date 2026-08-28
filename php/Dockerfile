@@ -31,6 +31,9 @@ RUN apt-get update \
     && chown -R www-data:www-data /tmp/php-sessions \
     && printf '%s\n' \
         'session.save_path=/tmp/php-sessions' \
+        'display_errors=Off' \
+        'html_errors=Off' \
+        'log_errors=On' \
         'upload_max_filesize=128M' \
         'post_max_size=128M' \
         'memory_limit=512M' \
