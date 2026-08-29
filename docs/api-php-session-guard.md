@@ -21,10 +21,10 @@ Não há segredo fixo no browser. Credenciais OAuth/DB não foram alteradas.
 docker compose -f php/compose.yaml --env-file php/.env up -d --build
 ```
 
-3. Rodar os testes do guard:
+3. Rodar os testes do guard **dentro do container** (PDO SQLite faz parte da imagem PHP):
 
 ```bash
-php php/shared/api-guard/tests/run.php
+docker exec php_global php /var/www/html/shared/api-guard/tests/run.php
 ```
 
 4. Smoke no browser, logado no `gsfacilFront` (same-origin):

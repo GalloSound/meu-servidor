@@ -14,6 +14,13 @@ final class ApiSessionGuardTest
 
     public function run(): int
     {
+        if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) {
+            fwrite(STDERR, "PDO SQLite ausente. Rode no container PHP (tem pdo_sqlite na imagem):\n");
+            fwrite(STDERR, "  docker exec php_global php /var/www/html/shared/api-guard/tests/run.php\n");
+            fwrite(STDERR, "Se o driver ainda faltar, reconstrua: docker compose -f php/compose.yaml --env-file php/.env up -d --build\n");
+            return 2;
+        }
+
         $this->testNoCookieReturns401();
         $this->testValidCookieWithoutCsrfReturns403();
         $this->testInvalidCsrfReturns403();

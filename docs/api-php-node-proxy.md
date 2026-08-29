@@ -74,8 +74,8 @@ docker compose -f node/apigsfacil/compose.yaml --env-file node/apigsfacil/.env u
 3. Testes automatizados:
 
 ```bash
-php php/shared/api-guard/tests/run.php
-php php/shared/node-proxy/tests/run.php
+docker exec php_global php /var/www/html/shared/api-guard/tests/run.php
+docker exec php_global php /var/www/html/shared/node-proxy/tests/run.php
 # no diretório da API:
 (cd node/apigsfacil && npm test)
 ```

@@ -12,6 +12,7 @@ RUN apt-get update \
         libicu-dev \
         libjpeg62-turbo-dev \
         libpng-dev \
+        libsqlite3-dev \
         libxml2-dev \
         libzip-dev \
         unzip \
@@ -22,6 +23,7 @@ RUN apt-get update \
         intl \
         mysqli \
         pdo_mysql \
+        pdo_sqlite \
         soap \
         zip \
     && a2enmod rewrite headers \
