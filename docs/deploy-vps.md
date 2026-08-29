@@ -130,7 +130,6 @@ BASE_DIR=/gsfacilfront/public
 BASE_URL_IMAGES=/app_sistema/
 BASE_APP=/app/
 INTERNAL_API_URL=http://apigsfacil:4000
-INTERNAL_API_SECRET=<mesmo-valor-do-node>
 BASE_URL_API_CONTACTS=/gcar/
 BASE_URL_API_PEOPLECONTACTS=/peoplecontacts/public_html/apicontacts/
 ```
@@ -148,8 +147,9 @@ DB_PASS=<mesma-senha-do-MARIADB_ROOT_PASSWORD>
 DB_NAME=gpsjundi_bdgsfacil
 ```
 
-Preencha tambem as chaves de API externas usadas pelo projeto e o
-`INTERNAL_API_SECRET` (o mesmo valor configurado em `php/.env`).
+Preencha tambem as chaves de API externas usadas pelo projeto. A API Node
+valida o token de login enviado pelo PHP (`X-Session-Token`); nao precisa
+de `INTERNAL_API_SECRET`.
 
 ### `infra/backup/.env`
 

@@ -28,9 +28,6 @@ final class ApiSessionGuardTest
         $this->testAuthorizedUserSucceeds();
         $this->testUserWithoutPermissionReturns403();
         $this->testOptionsRejectsArbitraryOrigin();
-        $this->testNodeActionAuthorized();
-        $this->testNodeActionWithoutPermission();
-        $this->testNodeDivergentTenant();
 
         echo $this->passed . ' passed, ' . $this->failed . ' failed' . PHP_EOL;
         foreach ($this->failures as $failure) {
@@ -139,55 +136,6 @@ final class ApiSessionGuardTest
                 ],
                 'session' => [],
             ])->assert(ApiSessionGuard::ACTION_CALENDAR_CREATE);
-        });
-    }
-
-    private function testNodeActionAuthorized(): void
-    {
-        try {
-            $context = $this->guard([
-                'session' => [
-                    'token' => 'tok-ok',
-                    ApiSessionGuard::CSRF_SESSION_KEY => 'csrf-ok',
-                ],
-                'post' => ['empresaID' => '5', 'placa' => 'ABC1D23'],
-                'headers' => ['X-CSRF-Token' => 'csrf-ok'],
-            ])->assert(ApiSessionGuard::ACTION_NODE_CONSULTA_PLACA);
-
-            $this->assertTrue(
-                $context['empresaId'] === 5,
-                'node consultaplaca autorizado'
-            );
-        } catch (Throwable $e) {
-            $this->fail('node consultaplaca autorizado', $e->getMessage());
-        }
-    }
-
-    private function testNodeActionWithoutPermission(): void
-    {
-        $this->expectDenied('node sem permissão: 403', 403, 'forbidden', function (): void {
-            $this->guard([
-                'session' => [
-                    'token' => 'tok-noperm',
-                    ApiSessionGuard::CSRF_SESSION_KEY => 'csrf-ok',
-                ],
-                'post' => ['code' => 'AB123'],
-                'headers' => ['X-CSRF-Token' => 'csrf-ok'],
-            ])->assert(ApiSessionGuard::ACTION_NODE_RASTREIO_COD);
-        });
-    }
-
-    private function testNodeDivergentTenant(): void
-    {
-        $this->expectDenied('node tenant divergente: 403', 403, 'tenant', function (): void {
-            $this->guard([
-                'session' => [
-                    'token' => 'tok-ok',
-                    ApiSessionGuard::CSRF_SESSION_KEY => 'csrf-ok',
-                ],
-                'post' => ['empresaID' => '99', 'user' => '2', 'descricao' => 'x', 'valor' => '10'],
-                'headers' => ['X-CSRF-Token' => 'csrf-ok'],
-            ])->assert(ApiSessionGuard::ACTION_NODE_INSERT_DIV);
         });
     }
 

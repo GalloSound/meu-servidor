@@ -3,69 +3,70 @@
 declare(strict_types=1);
 
 /**
- * Cliente HTTP PHP → Node (somente rede Docker).
- *
- * Autenticação: HMAC-SHA256 com INTERNAL_API_SECRET (mesmo valor no .env do Node).
- * O browser nunca vê este segredo. Timeout sem vazar mensagem de transporte.
+ * Cliente HTTP PHP → Node, só na rede Docker (http://apigsfacil:4000).
+ * Autenticação: header X-Session-Token = token do login (gs_Administrador.token).
  */
 final class NodeApiClient
 {
-    public const HEADER_TIMESTAMP = 'X-Internal-Timestamp';
-    public const HEADER_NONCE = 'X-Internal-Nonce';
-    public const HEADER_SIGNATURE = 'X-Internal-Signature';
+    public const HEADER_TOKEN = 'X-Session-Token';
 
     public function __construct(
         private string $baseUrl,
-        private string $secret,
-        private int $timeoutSeconds = 20,
-        private int $connectTimeoutSeconds = 5
+        private int $timeoutSeconds = 20
     ) {
         $this->baseUrl = rtrim($baseUrl, '/');
-        if ($this->baseUrl === '' || $this->secret === '') {
-            throw new InvalidArgumentException('Cliente interno sem configuração.');
+        if ($this->baseUrl === '') {
+            throw new InvalidArgumentException('INTERNAL_API_URL ausente.');
         }
     }
 
     public static function fromEnv(): self
     {
-        $base = getenv('INTERNAL_API_URL');
-        $secret = getenv('INTERNAL_API_SECRET');
-        $timeout = getenv('INTERNAL_API_TIMEOUT');
+        $base = self::readEnv('INTERNAL_API_URL');
+        $timeout = self::readEnv('INTERNAL_API_TIMEOUT');
 
-        if ($base === false || trim((string) $base) === '' || $secret === false || trim((string) $secret) === '') {
-            throw new RuntimeException('INTERNAL_API_URL e INTERNAL_API_SECRET são obrigatórios.');
+        if ($base === null) {
+            throw new RuntimeException('INTERNAL_API_URL é obrigatório.');
         }
 
         $timeoutSeconds = 20;
-        if (is_string($timeout) && preg_match('/^[1-9][0-9]*$/', $timeout) === 1) {
+        if ($timeout !== null && preg_match('/^[1-9][0-9]*$/', $timeout) === 1) {
             $timeoutSeconds = (int) $timeout;
         }
 
-        return new self(trim((string) $base), trim((string) $secret), $timeoutSeconds);
+        return new self($base, $timeoutSeconds);
+    }
+
+    private static function readEnv(string $name): ?string
+    {
+        foreach ([getenv($name), $_SERVER[$name] ?? null, $_ENV[$name] ?? null] as $value) {
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+        }
+
+        return null;
     }
 
     /**
-     * Assina o body bruto (os mesmos bytes que serão enviados) e POSTa em INTERNAL_API_URL + path.
-     * O Node recalcula o HMAC sobre req.rawBody; qualquer alteração no caminho invalida a assinatura.
-     *
      * @param array<string, scalar|null> $fields
      * @return array{status:int, json:array<string, mixed>}
      */
-    public function post(string $path, array $fields): array
+    public function post(string $path, array $fields, string $loginToken): array
     {
+        if (trim($loginToken) === '') {
+            throw new InvalidArgumentException('Token de sessão ausente.');
+        }
+
         $path = '/' . ltrim($path, '/');
+        unset($fields['token'], $fields['pass'], $fields['password'], $fields['empresaID'], $fields['empresa_id']);
         $body = http_build_query($fields, '', '&', PHP_QUERY_RFC3986);
-        $timestamp = (string) time();
-        $nonce = bin2hex(random_bytes(16));
-        $signature = self::sign($this->secret, $timestamp, $nonce, 'POST', $path, $body);
 
         $headers = [
             'Accept: application/json',
             'Content-Type: application/x-www-form-urlencoded',
             'X-Content-Type-Options: nosniff',
-            self::HEADER_TIMESTAMP . ': ' . $timestamp,
-            self::HEADER_NONCE . ': ' . $nonce,
-            self::HEADER_SIGNATURE . ': ' . $signature,
+            self::HEADER_TOKEN . ': ' . $loginToken,
         ];
 
         $url = $this->baseUrl . $path;
@@ -110,36 +111,12 @@ final class NodeApiClient
     }
 
     /**
-     * Canônico: timestamp \\n nonce \\n METHOD \\n path \\n sha256(body).
-     * Deve ser idêntico a node/apigsfacil/src/lib/hmac.js
-     */
-        string $secret,
-        string $timestamp,
-        string $nonce,
-        string $method,
-        string $path,
-        string $body
-    ): string {
-        $canonical = implode("\n", [
-            $timestamp,
-            $nonce,
-            strtoupper($method),
-            $path,
-            hash('sha256', $body),
-        ]);
-
-        return hash_hmac('sha256', $canonical, $secret);
-    }
-
-    /**
-     * Remove detalhe/stack de terceiros (Wonca, APIBrasil, erros de socket) antes de devolver ao browser.
-     *
      * @param array<string, mixed> $decoded
      * @return array<string, mixed>
      */
     public static function sanitizeJson(array $decoded): array
     {
-        unset($decoded['detalhe'], $decoded['stack'], $decoded['trace'], $decoded['upstream']);
+        unset($decoded['detalhe'], $decoded['stack'], $decoded['trace'], $decoded['upstream'], $decoded['token']);
         if (!array_key_exists('error', $decoded)) {
             $decoded['error'] = '';
         }

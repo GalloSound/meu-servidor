@@ -14,7 +14,7 @@ final class ApiAuthDenied extends RuntimeException
 }
 
 /**
- * Guard de sessão/tenant/CSRF para /gcar, /apicontacts e /internal/api (proxy Node).
+ * Guard de sessão/tenant/CSRF para /gcar e /apicontacts.
  *
  * Contrato de sessão (gsfacilFront):
  * - cookie PHPSESSID compartilhado no runtime PHP
@@ -30,13 +30,6 @@ final class ApiSessionGuard
     public const ACTION_CONTACTS_CREATE = 'contacts.create';
     public const ACTION_CONTACTS_EDIT = 'contacts.edit';
     public const ACTION_CALENDAR_OAUTH = 'calendar.oauth';
-    /** Consulta placa (APIBrasil) via proxy PHP → Node. */
-    public const ACTION_NODE_CONSULTA_PLACA = 'node.consultaplaca';
-    public const ACTION_NODE_RASTREIO = 'node.rastreio';
-    public const ACTION_NODE_RASTREIO_COD = 'node.rastreiocod';
-    /** Retirada DIV: lança financeiro na empresa da sessão, não um empresaID fixo. */
-    public const ACTION_NODE_INSERT_DIV = 'node.insertdiv';
-    public const ACTION_NODE_ADD_CLIENTE_FAST = 'node.addclientefast';
 
     public const CSRF_SESSION_KEY = 'csrf_token';
     public const CSRF_HEADER = 'X-CSRF-Token';
@@ -54,11 +47,6 @@ final class ApiSessionGuard
         self::ACTION_CONTACTS_CREATE => ['visualizar_veiculos_clientes', 'visualizar_orcamentos'],
         self::ACTION_CONTACTS_EDIT => ['visualizar_veiculos_clientes', 'visualizar_orcamentos'],
         self::ACTION_CALENDAR_OAUTH => ['desenvolvedor_piloto'],
-        self::ACTION_NODE_CONSULTA_PLACA => ['visualizar_veiculos_clientes', 'visualizar_orcamentos'],
-        self::ACTION_NODE_RASTREIO => ['entrada_estoque'],
-        self::ACTION_NODE_RASTREIO_COD => ['entrada_estoque'],
-        self::ACTION_NODE_INSERT_DIV => ['visualizar_financeiro'],
-        self::ACTION_NODE_ADD_CLIENTE_FAST => ['visualizar_veiculos_clientes', 'visualizar_orcamentos'],
     ];
 
     /** @var array<string, mixed> */
@@ -384,7 +372,7 @@ final class ApiSessionGuard
 
     /**
      * Se o body disser que a empresa/usuário é outro, recusa.
-     * Ausência de empresaID no POST é ok: o proxy injeta o da sessão depois.
+     * Ausência de empresaID no POST é ok: o Node resolve a empresa pelo token.
      * O campo "user" do insertdiv (colaborador da retirada) NÃO entra nesta lista.
      *
      * @param array{userId:int,empresaId:int,groupId:int,permissions:list<string>,ipFixo:?string} $identity

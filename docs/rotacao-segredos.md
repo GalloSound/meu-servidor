@@ -88,18 +88,7 @@ Checklist:
 
 ## Senha temporária de manutenção
 
-`API_MAINTENANCE_PASS` deixou de autenticar requests. A credencial ativa entre
-PHP e Node é `INTERNAL_API_SECRET` (HMAC). Mantenha `API_MAINTENANCE_PASS` no
-`.env` só enquanto o fail-fast ainda a exigir; não a coloque no JavaScript.
-
-## Credencial interna PHP → apigsfacil
-
-- Gere um valor longo e aleatório para `INTERNAL_API_SECRET`.
-- Copie o **mesmo** valor para `php/.env` e `node/apigsfacil/.env`.
-- Distribua-o apenas por um cofre de segredos.
-- Depois da troca, recrie `php_global` e `apigsfacil`.
-- Confira que o JS público não contém o novo valor.
-- Revogue o valor anterior assim que o smoke autenticado passar.
+A API Node valida o **token do login** (`gs_Administrador.token`) enviado pelo PHP. Não coloque token nem senha no JavaScript.
 
 ## Plano de limpeza do histórico Git
 
@@ -117,8 +106,8 @@ Arquivos detectados no histórico:
 - `php/peoplecontacts`: `credentials.json`, `sftp-config.json`, `config.php`,
   `index.php`, `configLocalhost.php`, `configServidor.php` e
   `config_example.php`.
-- `node/apigsfacil`: `sftp-config.json`,
-  `src/controllers/AutomaticController.js` e `src/middleware/Auth.js`.
+- `node/apigsfacil`: `sftp-config.json` e
+  `src/controllers/AutomaticController.js`.
 - Nenhum caminho `secure-data/` ou `token*.json` foi encontrado nos objetos Git
   examinados.
 
@@ -148,7 +137,7 @@ git fsck --full
 ```
 
 Remova dos argumentos os caminhos que não existirem naquele repositório. Não
-remova `config.php`, `index.php`, `AutomaticController.js` ou `Auth.js`, pois são
+remova `config.php`, `index.php` ou `AutomaticController.js`, pois são
 arquivos de código ainda necessários.
 
 Valide em outro clone antes de publicar. Somente após a rotação de todos os
