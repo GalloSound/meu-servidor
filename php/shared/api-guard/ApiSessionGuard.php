@@ -14,12 +14,13 @@ final class ApiAuthDenied extends RuntimeException
 }
 
 /**
- * Guard de sessão/tenant/CSRF para /gcar e /apicontacts.
+ * Guard de sessão/tenant/CSRF para /gcar, /apicontacts e /internal/api (proxy Node).
  *
  * Contrato de sessão (gsfacilFront):
  * - cookie PHPSESSID compartilhado no runtime PHP
  * - $_SESSION['token'] = token do gs_Administrador
- * - empresa e usuário resolvidos no servidor; body nunca é fonte de verdade
+ * - empresa e usuário resolvidos no servidor (SELECT empresa_id WHERE token = ?);
+ *   o body do browser nunca é fonte de verdade do tenant
  */
 final class ApiSessionGuard
 {
@@ -29,9 +30,11 @@ final class ApiSessionGuard
     public const ACTION_CONTACTS_CREATE = 'contacts.create';
     public const ACTION_CONTACTS_EDIT = 'contacts.edit';
     public const ACTION_CALENDAR_OAUTH = 'calendar.oauth';
+    /** Consulta placa (APIBrasil) via proxy PHP → Node. */
     public const ACTION_NODE_CONSULTA_PLACA = 'node.consultaplaca';
     public const ACTION_NODE_RASTREIO = 'node.rastreio';
     public const ACTION_NODE_RASTREIO_COD = 'node.rastreiocod';
+    /** Retirada DIV: lança financeiro na empresa da sessão, não um empresaID fixo. */
     public const ACTION_NODE_INSERT_DIV = 'node.insertdiv';
     public const ACTION_NODE_ADD_CLIENTE_FAST = 'node.addclientefast';
 
@@ -262,6 +265,7 @@ final class ApiSessionGuard
         }
 
         $pdo = $this->pdo();
+        // Tenant = gs_Administrador.empresa_id do token na sessão. Sem default 1: token inválido → 401.
         $sql = $pdo->prepare(
             'SELECT
                 gs_Administrador.idAdmin,
@@ -379,6 +383,10 @@ final class ApiSessionGuard
     }
 
     /**
+     * Se o body disser que a empresa/usuário é outro, recusa.
+     * Ausência de empresaID no POST é ok: o proxy injeta o da sessão depois.
+     * O campo "user" do insertdiv (colaborador da retirada) NÃO entra nesta lista.
+     *
      * @param array{userId:int,empresaId:int,groupId:int,permissions:list<string>,ipFixo:?string} $identity
      */
     private function enforceTenant(array $identity): void

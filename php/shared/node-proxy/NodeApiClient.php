@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+/**
+ * Cliente HTTP PHP → Node (somente rede Docker).
+ *
+ * Autenticação: HMAC-SHA256 com INTERNAL_API_SECRET (mesmo valor no .env do Node).
+ * O browser nunca vê este segredo. Timeout sem vazar mensagem de transporte.
+ */
 final class NodeApiClient
 {
     public const HEADER_TIMESTAMP = 'X-Internal-Timestamp';
@@ -39,6 +45,9 @@ final class NodeApiClient
     }
 
     /**
+     * Assina o body bruto (os mesmos bytes que serão enviados) e POSTa em INTERNAL_API_URL + path.
+     * O Node recalcula o HMAC sobre req.rawBody; qualquer alteração no caminho invalida a assinatura.
+     *
      * @param array<string, scalar|null> $fields
      * @return array{status:int, json:array<string, mixed>}
      */
@@ -100,7 +109,10 @@ final class NodeApiClient
         ];
     }
 
-    public static function sign(
+    /**
+     * Canônico: timestamp \\n nonce \\n METHOD \\n path \\n sha256(body).
+     * Deve ser idêntico a node/apigsfacil/src/lib/hmac.js
+     */
         string $secret,
         string $timestamp,
         string $nonce,
@@ -120,6 +132,8 @@ final class NodeApiClient
     }
 
     /**
+     * Remove detalhe/stack de terceiros (Wonca, APIBrasil, erros de socket) antes de devolver ao browser.
+     *
      * @param array<string, mixed> $decoded
      * @return array<string, mixed>
      */
