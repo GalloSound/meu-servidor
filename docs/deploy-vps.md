@@ -115,7 +115,12 @@ DB_DATABASE=gpsjundi_bdgsfacil
 DB_USER=root
 DB_PASS=<mesma-senha-do-MARIADB_ROOT_PASSWORD>
 API_SECRET_KEY=<chave-forte-para-as-APIs-PHP>
+SESSION_LIFETIME=14400
+SESSION_SAMESITE=Lax
+TRUSTED_PROXY_CIDRS=172.16.0.0/12,10.0.0.0/8
 ```
+
+`TRUSTED_PROXY_CIDRS` deve cobrir a rede Docker do Nginx Proxy Manager. Sem isso, `X-Forwarded-*` é ignorado.
 
 Troque as URLs locais por URLs HTTPS reais:
 

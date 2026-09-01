@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+$authBootstrap = dirname(__DIR__) . '/auth/bootstrap.php';
+if (is_file($authBootstrap)) {
+    require_once $authBootstrap;
+}
+
 ini_set('display_errors', '0');
 ini_set('display_startup_errors', '0');
 ini_set('html_errors', '0');

@@ -4,8 +4,8 @@ Biblioteca compartilhada do runtime PHP. Não é namespace HTTP (`/shared` respo
 
 ## Contrato
 
-- Login oficial: `gsfacilFront` grava `$_SESSION['token']`.
-- Cookie `PHPSESSID` compartilhado no volume `php_sessions`.
+- Login oficial: `gsfacilFront` grava `$_SESSION['token']` (e `ccUser` como alias).
+- Cookie `PHPSESSID` compartilhado no volume `php_sessions` (`path=/`, 4h, HttpOnly).
 - Empresa e usuário vêm do banco a partir do token da sessão.
 - `empresaID` / `userID` no body, se enviados, só podem coincidir com a sessão.
 - CSRF: `$_SESSION['csrf_token']` + header `X-CSRF-Token`.

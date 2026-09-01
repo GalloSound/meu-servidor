@@ -234,9 +234,12 @@ final class ApiSessionGuard
         }
 
         if (session_status() === PHP_SESSION_NONE) {
-            // Mesmo lifetime do gsfacilFront/public/index.php para não reescrever o cookie.
-            session_set_cookie_params(14400);
-            session_start();
+            if (class_exists('SharedSession')) {
+                SharedSession::start();
+            } else {
+                session_set_cookie_params(14400);
+                session_start();
+            }
         }
 
         $this->session = $_SESSION;
@@ -247,8 +250,10 @@ final class ApiSessionGuard
      */
     private function resolveIdentity(): array
     {
-        $token = $this->session['token'] ?? null;
-        if (!is_string($token) || trim($token) === '') {
+        $token = class_exists('SessionIdentity')
+            ? SessionIdentity::token($this->session)
+            : (isset($this->session['token']) && is_string($this->session['token']) ? trim($this->session['token']) : '');
+        if ($token === null || $token === '') {
             throw new ApiAuthDenied(401, 'Não autenticado.', 'unauthenticated');
         }
 
@@ -294,7 +299,9 @@ final class ApiSessionGuard
         ];
 
         if (!in_array('external_access', $permissions, true)) {
-            $remote = (string) ($this->server['REMOTE_ADDR'] ?? '');
+            $remote = class_exists('TrustedProxy')
+                ? TrustedProxy::clientIp($this->server)
+                : (string) ($this->server['REMOTE_ADDR'] ?? '');
             if ($identity['ipFixo'] === null || $remote === '' || !hash_equals($identity['ipFixo'], $remote)) {
                 throw new ApiAuthDenied(403, 'Sem permissão para esta ação.', 'forbidden');
             }
@@ -532,35 +539,15 @@ final class ApiSessionGuard
 
     private function currentOrigin(): string
     {
+        if (class_exists('PublicUrl')) {
+            return PublicUrl::origin($this->server);
+        }
+
         $https = strtolower((string) ($this->server['HTTPS'] ?? ''));
         $scheme = ($https === 'on' || $https === '1') ? 'https' : 'http';
-
-        $forwarded = strtolower(trim(explode(',', (string) ($this->server['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
-        if ($forwarded === 'https' || $forwarded === 'http') {
-            $scheme = $forwarded;
-        } elseif (!empty($this->server['REQUEST_SCHEME'])) {
-            $scheme = strtolower((string) $this->server['REQUEST_SCHEME']) === 'https' ? 'https' : 'http';
-        } elseif ((string) ($this->server['SERVER_PORT'] ?? '') === '443') {
-            $scheme = 'https';
-        }
-
-        $host = trim(explode(',', (string) (
-            $this->server['HTTP_X_FORWARDED_HOST']
-            ?? $this->server['HTTP_HOST']
-            ?? $this->server['SERVER_NAME']
-            ?? ''
-        ))[0]);
-
+        $host = trim((string) ($this->server['HTTP_HOST'] ?? $this->server['SERVER_NAME'] ?? ''));
         if ($host === '') {
             return '';
-        }
-
-        if (preg_match('/^(.+):(\d+)$/', $host, $m) === 1) {
-            $hostOnly = $m[1];
-            $headerPort = $m[2];
-            $isDefault = ($scheme === 'https' && in_array($headerPort, ['80', '443'], true))
-                || ($scheme === 'http' && $headerPort === '80');
-            $host = $isDefault ? $hostOnly : $host;
         }
 
         return $scheme . '://' . $host;

@@ -26,13 +26,27 @@ RUN apt-get update \
         pdo_sqlite \
         soap \
         zip \
-    && a2enmod rewrite headers \
+    && a2enmod rewrite headers remoteip \
     && printf '%s\n' 'ServerName localhost' > /etc/apache2/conf-available/servername.conf \
     && a2enconf servername \
+    && printf '%s\n' \
+        'RemoteIPHeader X-Forwarded-For' \
+        'RemoteIPInternalProxy 10.0.0.0/8' \
+        'RemoteIPInternalProxy 172.16.0.0/12' \
+        'RemoteIPInternalProxy 192.168.0.0/16' \
+        > /etc/apache2/conf-available/remoteip-trusted.conf \
+    && a2enconf remoteip-trusted \
     && mkdir -p /tmp/php-sessions \
     && chown -R www-data:www-data /tmp/php-sessions \
     && printf '%s\n' \
         'session.save_path=/tmp/php-sessions' \
+        'session.use_strict_mode=1' \
+        'session.use_only_cookies=1' \
+        'session.cookie_httponly=1' \
+        'session.cookie_path=/' \
+        'session.cookie_samesite=Lax' \
+        'session.gc_maxlifetime=14400' \
+        'session.cookie_lifetime=14400' \
         'display_errors=Off' \
         'html_errors=Off' \
         'log_errors=On' \
@@ -139,6 +153,13 @@ RUN printf '%s\n' \
     '        exit 1' \
     '    fi' \
     'done' \
+    '' \
+    'error_ini=/usr/local/etc/php/conf.d/error-display.ini' \
+    'if [ "${APP_ENV:-}" = "production" ]; then' \
+    '    printf "%s\n" "display_errors=Off" "display_startup_errors=Off" "html_errors=Off" "log_errors=On" > "$error_ini"' \
+    'else' \
+    '    printf "%s\n" "display_errors=On" "display_startup_errors=Off" "html_errors=Off" "log_errors=On" > "$error_ini"' \
+    'fi' \
     '' \
     'if [ "${APP_ENV:-}" = "production" ] && [ ! -f "$GOOGLE_CALENDAR_TOKEN_PATH" ]; then' \
     '    echo "Arquivo secreto obrigatório ausente: GOOGLE_CALENDAR_TOKEN_PATH" >&2' \
