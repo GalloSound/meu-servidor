@@ -1,7 +1,8 @@
 # Plano 5 — Privilegio minimo e redes Docker
 
-Playbook operacional. Nao execute GRANT/REVOKE em producao sem dump validado.
-Nao altere volumes. Nao faca commit nem push neste passo.
+Arquitetura vigente (redes, usuarios, portas): `README.md` e `.cursor/rules/infra-docker-multiprojetos.mdc`.
+
+Este arquivo e o **playbook operacional** (dump, SQL, corte de rede, rollback). Nao execute GRANT/REVOKE em producao sem dump validado. Nao altere volumes. Nao coloque senhas reais aqui.
 
 ## Mapa atual vs alvo
 

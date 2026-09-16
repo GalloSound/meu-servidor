@@ -1,0 +1,68 @@
+---
+description: Infraestrutura Docker do meu-servidor (redes, usuarios DB, portas, stacks)
+alwaysApply: true
+---
+
+# Infraestrutura Docker — meu-servidor
+
+Fonte de verdade: `infra/compose.yaml`, `php/compose.yaml`, `node/apigsfacil/compose.yaml` e os `.env` (nao versionados). Playbook de redes/usuarios: `docs/hardening-privilegio-redes.md`. Deploy VPS: `docs/deploy-vps.md`. Nao coloque senhas nesta rule.
+
+```text
+meu-servidor/
+├── infra/          MariaDB, phpMyAdmin, Filebrowser (perfil admin-tools), NPM, backup
+├── php/            runtime Apache/PHP compartilhado + projetos PHP
+├── node/apigsfacil API Node em container proprio
+└── docs/
+```
+
+Os apps em `php/app*`, `gsfacilFront`, `googlecalendar`, `peoplecontacts` e `node/apigsfacil` sao repos independentes. Nao criar MariaDB, Dockerfile ou compose dentro de cada projeto PHP.
+
+## Redes
+
+| Rede | Quem entra | Para que |
+|---|---|---|
+| `rede-banco-global` | `mariadb_global`, `phpmyadmin_global`, `php_global`, `apigsfacil` | SQL. MariaDB sem porta no host. |
+| `rede-proxy-global` | `nginx_proxy_manager`, `php_global`, `apigsfacil` | HTTP interno. NPM **nao** resolve `mariadb_global`. |
+| `npm-internal` | `nginx_proxy_manager`, `npm_db` | So o banco do NPM. |
+
+Crie `rede-proxy-global` com `docker network create` (Fase 5 do playbook). `DOCKER_NETWORK` e `DOCKER_PROXY_NETWORK` nos `.env`.
+
+## Usuarios MariaDB (`gpsjundi_bdgsfacil`)
+
+| Quem | Usuario | Privilegio |
+|---|---|---|
+| PHP (`php_global`) | `app_php` (`php/.env`) | DML no schema do app |
+| Node (`apigsfacil`) | `app_node` | DML no schema do app |
+| phpMyAdmin | `pma_admin` | ALL so nesse schema |
+| dump / Kopia / emergencia | `root` no container | nao usar nos `.env` das apps |
+
+Nao conceder `root` a PHP/Node. `banco_inicial` e residual. SQL: `infra/sql/001_app_users.sql` (gitignored; copiar placeholders, nunca commitar senha).
+
+## Runtime PHP
+
+Um container `php_global`. Sessao compartilhada: `app`, `app_nf`, `app_sistema`, `gsfacilFront`. Satelites no mesmo runtime: `googlecalendar`, `peoplecontacts`. Node fora do PHP.
+
+`DB_HOST=mariadb_global` (nunca `localhost` dentro do container). Browser chama PHP `/internal/api`; PHP chama Node em `http://apigsfacil:4000`.
+
+URLs locais (Mac ou tunel SSH): `http://localhost:8082/app/`, `/app_nf/`, `/app_sistema/`, `/gsfacilfront/public/`, `/googlecalendar/`, `/peoplecontacts/`.
+
+## Portas no host
+
+Tudo sensivel em `127.0.0.1`. VPS: NPM `0.0.0.0:80/443`; painel NPM em `127.0.0.1:81`.
+
+| Servico | Container | Porta |
+|---|---|---|
+| phpMyAdmin | `phpmyadmin_global` | 8080 |
+| PHP | `php_global` | 8082 |
+| Filebrowser | `filebrowser_global` | 8083 (so perfil `admin-tools`) |
+| API Node | `apigsfacil` | 4000 |
+| Kopia | `kopia_backup` | 51515 |
+
+Filebrowser **nao** sobe no `up -d` padrao. Mac opcional: `--profile admin-tools`. Monta `php/` e `docs/` somente leitura. Producao: deixe parado.
+
+## Regras de trabalho
+
+- Comandos via Docker/`docker compose`. Conferir compose da infra antes de mudar host, porta, rede ou usuario DB.
+- PHP 7.4 e 8.2 conforme a migracao ja existente.
+- Mac e VPS usam os mesmos compose; so os `.env` mudam.
+- Tunel SSH para phpMyAdmin/PHP/API na VPS; site publico e HTTPS no NPM.

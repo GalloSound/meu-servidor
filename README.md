@@ -9,7 +9,8 @@ Plataforma Docker compartilhada do ambiente `meu-servidor`. Os mesmos `compose.y
 - `infra/backup/`: backup com Kopia.
 - `php/compose.yaml` e `php/Dockerfile`: runtime Apache/PHP compartilhado.
 - `node/apigsfacil/`: API Node em container proprio.
-- `docs/`: deploy e operacao.
+- `docs/`: deploy e operacao (`deploy-vps.md`, `hardening-privilegio-redes.md`).
+- `.cursor/rules/infra-docker-multiprojetos.mdc`: contexto para agentes (redes, usuarios DB, portas). Os repos PHP em `php/*` so devem ter um ponteiro curto, nao uma copia deste mapa.
 
 O repositorio da plataforma nao versiona o codigo das aplicacoes em `php/app*`, `php/gsfacilFront`, `php/googlecalendar`, `php/peoplecontacts` e `node/apigsfacil`; esses diretorios possuem repositorios independentes.
 
