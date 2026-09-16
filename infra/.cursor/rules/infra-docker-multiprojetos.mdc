@@ -1,0 +1,24 @@
+---
+description: Ponteiro de infra Docker para a pasta infra/
+alwaysApply: true
+---
+
+# Infra global (`infra/`)
+
+Esta pasta e a infraestrutura compartilhada do `meu-servidor`. Apps PHP/Node so se conectam; nao copie MariaDB nem NPM para dentro dos projetos.
+
+**Fonte de verdade:** `compose.yaml` desta pasta, `nginx-proxy-manager/compose.yaml`, `backup/compose.yaml`, `.env` (nao versionados), `docs/hardening-privilegio-redes.md`, `docs/deploy-vps.md` e `.cursor/rules/infra-docker-multiprojetos.mdc` na raiz da plataforma.
+
+## Obrigatorio
+
+- `mariadb_global` so em `rede-banco-global`, sem porta no host.
+- `phpmyadmin_global` na rede DB; login humano `pma_admin`, nao `root` no dia a dia.
+- Filebrowser: perfil `admin-tools`, fora das redes de app. VPS: nao subir. Mac: mounts `php/` e `docs/` somente leitura.
+- NPM: `infra/nginx-proxy-manager/` — redes `npm-internal` + `rede-proxy-global`. Nao ligar o NPM em `rede-banco-global`.
+- Backup/Kopia: `infra/backup/`. Dump via `docker exec` com `root` local.
+- Usuarios do schema `gpsjundi_bdgsfacil`: `app_php`, `app_node`, `pma_admin`. SQL em `sql/001_app_users.sql` (gitignored). Nao coloque senhas nesta rule.
+
+## Caminhos
+
+- Runtime PHP: `../php/compose.yaml`. Node: `../node/apigsfacil/compose.yaml`.
+- Esta pasta nao e um app; nao criar compose extra por projeto PHP.

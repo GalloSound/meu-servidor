@@ -15,7 +15,7 @@ meu-servidor/
 └── docs/
 ```
 
-Os apps em `php/app*`, `gsfacilFront`, `googlecalendar`, `peoplecontacts` e `node/apigsfacil` sao repos independentes. Nao criar MariaDB, Dockerfile ou compose dentro de cada projeto PHP.
+Os apps em `php/app*`, `gsfacilFront`, `googlecalendar`, `peoplecontacts` e `node/apigsfacil` sao repos independentes. Nao criar MariaDB nem Dockerfile/compose dentro de cada projeto PHP. O Node tem compose proprio em `node/apigsfacil/`. Ponteiros curtos tambem em `infra/.cursor/rules/`.
 
 ## Redes
 
