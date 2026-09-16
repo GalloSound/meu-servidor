@@ -9,6 +9,8 @@ services:
     image: "meu-servidor/kopia-rclone:${KOPIA_IMAGE_TAG:-0.23.1}"
     container_name: kopia_backup
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     command:
       - server
       - start

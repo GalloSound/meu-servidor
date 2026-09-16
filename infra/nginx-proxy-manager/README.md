@@ -6,7 +6,7 @@ Stack dedicada do Nginx Proxy Manager para o ambiente `meu-servidor`.
 
 - Rodar o proxy reverso em container proprio.
 - Manter o banco do NPM **somente interno** (sem exposicao de porta).
-- Conectar o proxy na rede compartilhada `rede-banco-global` para rotear servicos internos.
+- Conectar o proxy na rede compartilhada `rede-proxy-global` para rotear PHP/Node, sem acesso ao MariaDB global.
 
 ## Subida local
 

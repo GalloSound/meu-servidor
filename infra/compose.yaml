@@ -1,8 +1,35 @@
+x-no-new-privileges: &no-new-privileges
+  security_opt:
+    - no-new-privileges:true
+
+x-mariadb-caps: &mariadb-caps
+  cap_drop:
+    - ALL
+  cap_add:
+    - CHOWN
+    - DAC_OVERRIDE
+    - FOWNER
+    - SETGID
+    - SETUID
+
+x-apache-caps: &apache-caps
+  cap_drop:
+    - ALL
+  cap_add:
+    - CHOWN
+    - DAC_OVERRIDE
+    - FOWNER
+    - KILL
+    - NET_BIND_SERVICE
+    - SETGID
+    - SETUID
+
 services:
   mariadb:
     image: mariadb:11.4
     container_name: mariadb_global
     restart: always
+    <<: [*no-new-privileges, *mariadb-caps]
     environment:
       MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?Defina MARIADB_ROOT_PASSWORD em infra/.env}"
       MARIADB_DATABASE: "${MARIADB_DATABASE:?Defina MARIADB_DATABASE em infra/.env}"
@@ -12,12 +39,13 @@ services:
     networks:
       - rede-banco-global
     # Sem a diretiva "ports", o banco fica 100% isolado do mundo externo.
-    # Apenas containers na mesma rede conseguem falar com ele.
+    # Apenas containers na rede DB conseguem falar com ele.
 
   phpmyadmin:
     image: phpmyadmin:5.2
     container_name: phpmyadmin_global
     restart: always
+    <<: [*no-new-privileges, *apache-caps]
     environment:
       PMA_HOST: mariadb_global
       PMA_PORT: 3306
@@ -35,6 +63,9 @@ services:
     image: filebrowser/filebrowser:v2-s6
     container_name: filebrowser_global
     restart: unless-stopped
+    profiles:
+      - admin-tools
+    <<: *no-new-privileges
     ports:
       - "127.0.0.1:${FILEBROWSER_PORT:?Defina FILEBROWSER_PORT em infra/.env}:80"
     environment:
@@ -42,18 +73,14 @@ services:
       PGID: "${FILEBROWSER_PGID:?Defina FILEBROWSER_PGID em infra/.env}"
       TZ: America/Sao_Paulo
     volumes:
-      - ..:/srv/meu-servidor
+      - ../php:/srv/php:ro
+      - ../docs:/srv/docs:ro
       - ./filebrowser/database:/database
       - ./filebrowser/config:/config
-    # Sem rede-banco-global: Filebrowser não precisa falar com MariaDB/PHP.
+    # Fora da rede DB e da rede proxy. Nao sobe no up -d padrao.
+    # Producao: nao use --profile admin-tools.
 
 networks:
   rede-banco-global:
     driver: bridge
     name: "${DOCKER_NETWORK:?Defina DOCKER_NETWORK em infra/.env}"
-
-# PHP
-# $host = 'mariadb_global'; // O Docker resolve o nome do container como IP automaticamente!
-# $db   = 'gpsjundi_bdgsfacil'; // Ajuste MARIADB_DATABASE e DB_DATABASE no .env de cada stack
-# $user = 'root';
-# $pass = '${MARIADB_ROOT_PASSWORD}';

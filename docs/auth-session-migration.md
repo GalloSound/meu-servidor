@@ -1,6 +1,6 @@
 # Migração de autenticação e sessão compartilhada
 
-Escopo: `gsfacilFront` (login oficial) e `app_sistema` (consome a mesma sessão). Senhas iguais entre usuários ficam como estão até a migração funcional do sistema; esta etapa só troca o armazenamento e o cookie.
+Escopo: `gsfacilFront` é o único login. `app_sistema`, `app` e `app_nf` só consomem a sessão compartilhada e redirecionam `/login` para o frontend. Senhas iguais entre usuários ficam como estão até a migração funcional do sistema; esta etapa só troca o armazenamento e o cookie.
 
 ## Schema
 

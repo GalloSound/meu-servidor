@@ -4,7 +4,7 @@ Plataforma Docker compartilhada do ambiente `meu-servidor`. Os mesmos `compose.y
 
 ## Stacks e projetos
 
-- `infra/compose.yaml`: MariaDB global, phpMyAdmin, Filebrowser e rede compartilhada.
+- `infra/compose.yaml`: MariaDB global, phpMyAdmin, Filebrowser (perfil `admin-tools`) e redes `rede-banco-global` (DB) e `rede-proxy-global` (proxy).
 - `infra/nginx-proxy-manager/`: Nginx Proxy Manager e seu banco interno.
 - `infra/backup/`: backup com Kopia.
 - `php/compose.yaml` e `php/Dockerfile`: runtime Apache/PHP compartilhado.
@@ -41,11 +41,11 @@ docker compose -f node/apigsfacil/compose.yaml --env-file node/apigsfacil/.env u
 docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env up -d --build
 ```
 
-A infra deve subir primeiro porque cria `rede-banco-global`. NPM, PHP, Node e backup dependem dela. Para detalhes de VPS, tunel SSH e troca de servidor, consulte `docs/deploy-vps.md`.
+A infra deve subir primeiro porque cria `rede-banco-global`. A rede `rede-proxy-global` e criada na Fase 5 do playbook (`docs/hardening-privilegio-redes.md`); PHP e Node entram nas duas redes, e o NPM so na proxy (mais `npm-internal`). Para detalhes de VPS, tunel SSH e troca de servidor, consulte `docs/deploy-vps.md`.
 
 ## Seguranca e versionamento
 
-MariaDB nao publica porta no host. phpMyAdmin, Filebrowser, PHP e API Node usam `127.0.0.1`; o painel do NPM tambem fica restrito a localhost.
+MariaDB nao publica porta no host. phpMyAdmin, Filebrowser, PHP e API Node usam `127.0.0.1`; o painel do NPM tambem fica restrito a localhost. Filebrowser nao sobe no `up -d` padrao.
 
 Antes de enviar alteracoes:
 

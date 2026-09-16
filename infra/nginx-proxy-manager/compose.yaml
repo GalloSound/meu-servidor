@@ -3,6 +3,16 @@ services:
     image: mariadb:11.4
     container_name: npm_db
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
     environment:
       MYSQL_ROOT_PASSWORD: "${NPM_DB_ROOT_PASSWORD:?Defina NPM_DB_ROOT_PASSWORD no .env desta stack}"
       MYSQL_DATABASE: "${NPM_DB_NAME:?Defina NPM_DB_NAME no .env desta stack}"
@@ -18,6 +28,8 @@ services:
     image: jc21/nginx-proxy-manager:2.15.1@sha256:52b2c59994f3d36acfcf70a1626f29734df0ed8c71bacc0269f78b6f939858bb
     container_name: nginx_proxy_manager
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       - npm_db
     ports:
@@ -35,7 +47,7 @@ services:
       - ./data/letsencrypt:/etc/letsencrypt
     networks:
       - npm-internal
-      - rede-banco-global
+      - rede-proxy-global
 
 networks:
   npm-internal:
@@ -43,5 +55,6 @@ networks:
     driver: bridge
     internal: true
 
-  rede-banco-global:
+  rede-proxy-global:
     external: true
+    name: "${DOCKER_PROXY_NETWORK:?Defina DOCKER_PROXY_NETWORK no .env desta stack}"

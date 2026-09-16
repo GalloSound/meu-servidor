@@ -7,6 +7,18 @@ services:
         PHP_VERSION: "${PHP_VERSION:?Defina PHP_VERSION em php/.env}"
     container_name: php_global
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - KILL
+      - NET_BIND_SERVICE
+      - SETGID
+      - SETUID
     ports:
       - "127.0.0.1:${PHP_RUNTIME_PORT:?Defina PHP_RUNTIME_PORT em php/.env}:80"
     volumes:
@@ -62,11 +74,15 @@ services:
       GOOGLE_CONTACTS_TOKEN_PATH: "${GOOGLE_CONTACTS_TOKEN_PATH:-}"
     networks:
       - rede-banco-global
+      - rede-proxy-global
 
 networks:
   rede-banco-global:
     external: true
     name: "${DOCKER_NETWORK:?Defina DOCKER_NETWORK em php/.env}"
+  rede-proxy-global:
+    external: true
+    name: "${DOCKER_PROXY_NETWORK:?Defina DOCKER_PROXY_NETWORK em php/.env}"
 
 volumes:
   php_sessions:

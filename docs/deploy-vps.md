@@ -79,11 +79,12 @@ MARIADB_DATABASE=gpsjundi_bdgsfacil
 PHPMYADMIN_PORT=8080
 FILEBROWSER_PORT=8083
 DOCKER_NETWORK=rede-banco-global
+DOCKER_PROXY_NETWORK=rede-proxy-global
 FILEBROWSER_PUID=1000
 FILEBROWSER_PGID=1000
 ```
 
-Se nao for usar phpMyAdmin/Filebrowser em producao, considere remover esses servicos ou bloquear as portas por firewall.
+Se nao for usar phpMyAdmin/Filebrowser em producao, nao suba o Filebrowser (omitir `--profile admin-tools`) e acesse phpMyAdmin so por tunel. O procedimento de usuarios DB e redes esta em `docs/hardening-privilegio-redes.md`.
 
 ### `infra/nginx-proxy-manager/.env`
 
@@ -99,6 +100,7 @@ NPM_HTTPS_BIND=0.0.0.0
 NPM_HTTP_PORT=80
 NPM_HTTPS_PORT=443
 NPM_ADMIN_PORT=81
+DOCKER_PROXY_NETWORK=rede-proxy-global
 ```
 
 No Mac, mantenha os binds `127.0.0.1` fornecidos pelo `.env.example`. Acesse a administracao da VPS por tunel SSH.
@@ -112,8 +114,8 @@ APP_ENV=production
 PATH_SISTEMA=/var/www/html/app_sistema
 DB_HOST=mariadb_global
 DB_DATABASE=gpsjundi_bdgsfacil
-DB_USER=root
-DB_PASS=<mesma-senha-do-MARIADB_ROOT_PASSWORD>
+DB_USER=app_php
+DB_PASS=<senha-do-usuario-app_php>
 API_SECRET_KEY=<chave-forte-para-as-APIs-PHP>
 SESSION_LIFETIME=14400
 SESSION_SAMESITE=Lax
@@ -147,8 +149,8 @@ Configure banco e tokens reais:
 
 ```env
 DB_HOST=mariadb_global
-DB_USER=root
-DB_PASS=<mesma-senha-do-MARIADB_ROOT_PASSWORD>
+DB_USER=app_node
+DB_PASS=<senha-do-usuario-app_node>
 DB_NAME=gpsjundi_bdgsfacil
 ```
 
@@ -181,10 +183,17 @@ infra/backup/rclone/rclone.conf
 
 ## 5. Ordem de subida
 
-Suba a infra principal primeiro. Ela cria a rede Docker compartilhada:
+Suba a infra principal primeiro. Ela cria a rede Docker do banco:
 
 ```bash
 docker compose -f infra/compose.yaml --env-file infra/.env up -d
+```
+
+Crie a rede proxy (PHP/Node/NPM) se ainda nao existir:
+
+```bash
+docker network inspect rede-proxy-global >/dev/null 2>&1 \
+  || docker network create --driver bridge rede-proxy-global
 ```
 
 Suba o Nginx Proxy Manager:
@@ -264,7 +273,7 @@ Senha: changeme
 
 Troque imediatamente no primeiro login.
 
-Crie os Proxy Hosts apontando para os nomes dos containers na rede Docker:
+Crie os Proxy Hosts apontando para os nomes dos containers na rede proxy:
 
 ```text
 php_global:80
@@ -294,13 +303,16 @@ Remova dumps do servidor apos importar.
 ```bash
 docker ps
 docker network inspect rede-banco-global
+docker network inspect rede-proxy-global
 docker logs nginx_proxy_manager --tail=100
 docker logs mariadb_global --tail=100
 ```
 
 Confirme:
 
-- `mariadb_global`, `php_global`, `apigsfacil` e `nginx_proxy_manager` na rede `rede-banco-global`.
+- `mariadb_global`, `php_global` e `apigsfacil` na rede `rede-banco-global`.
+- `nginx_proxy_manager`, `php_global` e `apigsfacil` na rede `rede-proxy-global`.
+- `nginx_proxy_manager` **fora** de `rede-banco-global`.
 - Nenhuma porta de banco exposta no host.
 - Dominio acessando via HTTPS.
 - Painel NPM com senha trocada.

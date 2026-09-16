@@ -78,7 +78,7 @@ Checklist:
 
 ## Banco de dados
 
-- Crie um usuário exclusivo para cada aplicação, com privilégio mínimo.
+- Crie um usuário exclusivo para cada aplicação, com privilégio mínimo. SQL e ordem: `docs/hardening-privilegio-redes.md`.
 - Altere a senha no MariaDB antes de substituir `DB_USER` e `DB_PASS`.
 - Atualize `MARIADB_ROOT_PASSWORD` em `infra/.env` somente quando houver uma
   janela coordenada para rotacionar a conta administrativa.
