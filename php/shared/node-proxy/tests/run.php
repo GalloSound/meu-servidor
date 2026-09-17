@@ -43,7 +43,10 @@ final class NodeApiClientTest
     private function testFromEnvFailFast(): void
     {
         $prevUrl = getenv('INTERNAL_API_URL');
+        $prevServer = $_SERVER['INTERNAL_API_URL'] ?? null;
+        $prevEnv = $_ENV['INTERNAL_API_URL'] ?? null;
         putenv('INTERNAL_API_URL');
+        unset($_SERVER['INTERNAL_API_URL'], $_ENV['INTERNAL_API_URL']);
         try {
             NodeApiClient::fromEnv();
             $this->fail('fromEnv fail-fast', 'deveria lançar');
@@ -52,6 +55,12 @@ final class NodeApiClientTest
         } finally {
             if ($prevUrl !== false) {
                 putenv('INTERNAL_API_URL=' . $prevUrl);
+            }
+            if (is_string($prevServer)) {
+                $_SERVER['INTERNAL_API_URL'] = $prevServer;
+            }
+            if (is_string($prevEnv)) {
+                $_ENV['INTERNAL_API_URL'] = $prevEnv;
             }
         }
     }
