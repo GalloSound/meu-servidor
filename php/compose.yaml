@@ -72,6 +72,11 @@ services:
       GOOGLE_CONTACTS_REFRESH_TOKEN: "${GOOGLE_CONTACTS_REFRESH_TOKEN:-}"
       GOOGLE_CONTACTS_REDIRECT_URI: "${GOOGLE_CONTACTS_REDIRECT_URI:-}"
       GOOGLE_CONTACTS_TOKEN_PATH: "${GOOGLE_CONTACTS_TOKEN_PATH:-}"
+      SMTP_HOST: "${SMTP_HOST:-}"
+      SMTP_USERNAME: "${SMTP_USERNAME:-}"
+      SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
+      SMTP_SECURE: "${SMTP_SECURE:-ssl}"
+      SMTP_PORT: "${SMTP_PORT:-465}"
     networks:
       - rede-banco-global
       - rede-proxy-global
