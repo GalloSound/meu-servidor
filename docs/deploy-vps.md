@@ -19,14 +19,17 @@ sudo ufw allow 443/tcp
 sudo ufw enable
 ```
 
-Evite expor publicamente:
+O Compose ja publica o que e sensivel em `127.0.0.1`. O firewall e a segunda camada. Nao abra estas portas no UFW:
 
-- `3306` MariaDB
+- `3306` MariaDB global e banco do NPM (os containers nao tem `ports`)
 - `8080` phpMyAdmin
 - `8082` runtime PHP
 - `8083` Filebrowser
 - `4000` API Node
-- `81` painel do NPM, salvo se houver restricao por IP/VPN
+- `81` painel do NPM
+- `51515` Kopia
+
+Na VPS, so `22`, `80` e `443` ficam alcancaveis de fora. `80` e `443` sao o NPM (`NPM_HTTP_BIND` e `NPM_HTTPS_BIND` em `0.0.0.0`). O painel `81` continua preso a `127.0.0.1` pelo Compose.
 
 ## 2. Clonar repositorios
 
@@ -166,6 +169,8 @@ Configure o backup:
 KOPIA_UI_USER=admin
 KOPIA_UI_PASSWORD=<senha-forte>
 KOPIA_REPOSITORY_PASSWORD=<senha-forte-e-diferente>
+BACKUP_STAGING_KEEP=3
+BACKUP_STAGING_CLEANUP=false
 MARIADB_CONTAINER=mariadb_global
 MARIADB_DATABASE=gpsjundi_bdgsfacil
 NPM_DB_CONTAINER=npm_db
@@ -173,6 +178,12 @@ RCLONE_REMOTE_NAME=gdrive
 RCLONE_REMOTE_PATH=Backups/meu-servidor
 BACKUP_FULL_ENABLED=true
 BACKUP_FULL_SOURCES=php,node,infra,docs,README.md
+```
+
+Antes de subir o Kopia, gere os arquivos de senha. O Compose nao coloca essas senhas na linha de comando:
+
+```bash
+./infra/backup/scripts/render-kopia-secrets.sh
 ```
 
 Para Google Drive pessoal, use Rclone OAuth e copie o arquivo em:
@@ -214,7 +225,7 @@ Suba a API Node:
 docker compose -f node/apigsfacil/compose.yaml --env-file node/apigsfacil/.env up -d --build
 ```
 
-Suba o backup com Kopia:
+Suba o backup com Kopia (depois de `render-kopia-secrets.sh`):
 
 ```bash
 docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env up -d --build
@@ -232,36 +243,51 @@ Teste um snapshot manual:
 ./infra/backup/scripts/snapshot-now.sh
 ```
 
-## 6. Acesso administrativo por tunel SSH
+## 6. Binds locais e tunel SSH
 
-phpMyAdmin, Filebrowser, PHP, API Node e painel do NPM ficam publicados apenas em `127.0.0.1` na VPS. Abra tuneis a partir do Mac:
+O mesmo Compose vale no Mac e na VPS. O que muda e o `.env`.
+
+| Servico | VPS | Mac (`.env.example`) |
+|---|---|---|
+| HTTP/HTTPS do NPM | `0.0.0.0:80` e `0.0.0.0:443` | `127.0.0.1:8084` e `127.0.0.1:4443` |
+| Painel do NPM | `127.0.0.1:81` | `127.0.0.1:8081` |
+| phpMyAdmin | `127.0.0.1:8080` | `127.0.0.1:8080` |
+| PHP | `127.0.0.1:8082` | `127.0.0.1:8082` |
+| API Node | `127.0.0.1:4000` | `127.0.0.1:4000` |
+| Kopia | `127.0.0.1:51515` | `127.0.0.1:51515` |
+| Filebrowser | `127.0.0.1:8083`, so com `--profile admin-tools` | igual, e nao sobe no `up -d` |
+| MariaDB e `npm_db` | sem porta no host | sem porta no host |
+
+No Mac, `8080`, `8081`, `8082`, `4000` e `51515` costumam estar ocupadas pela stack local. O tunel abaixo usa portas locais diferentes e aponta para o localhost da VPS:
 
 ```bash
 ssh -N \
-  -L 8080:127.0.0.1:8080 \
-  -L 8081:127.0.0.1:81 \
-  -L 8082:127.0.0.1:8082 \
-  -L 8083:127.0.0.1:8083 \
-  -L 4000:127.0.0.1:4000 \
+  -L 18080:127.0.0.1:8080 \
+  -L 18081:127.0.0.1:81 \
+  -L 18082:127.0.0.1:8082 \
+  -L 18083:127.0.0.1:8083 \
+  -L 14000:127.0.0.1:4000 \
+  -L 15151:127.0.0.1:51515 \
   usuario@IP_DO_VPS
 ```
 
 Enquanto a sessao estiver aberta, use no Mac:
 
-- phpMyAdmin: `http://127.0.0.1:8080`
-- NPM Admin: `http://127.0.0.1:8081`
-- PHP: `http://127.0.0.1:8082`
-- Filebrowser: `http://127.0.0.1:8083`
-- API Node: `http://127.0.0.1:4000`
+- phpMyAdmin: `http://127.0.0.1:18080`
+- NPM Admin: `http://127.0.0.1:18081`
+- PHP: `http://127.0.0.1:18082`
+- Filebrowser: `http://127.0.0.1:18083` (somente se o perfil `admin-tools` estiver ligado na VPS)
+- API Node: `http://127.0.0.1:14000`
+- Kopia: `http://127.0.0.1:15151`
 
-Se alguma porta local estiver ocupada, altere somente o primeiro numero do respectivo `-L`.
+O primeiro numero de cada `-L` e a porta no Mac. O destino (`127.0.0.1:porta`) e o bind na VPS. Nao troque o destino para `0.0.0.0`.
 
 ## 7. Nginx Proxy Manager
 
 Apos abrir o tunel, acesse o painel:
 
 ```text
-http://127.0.0.1:8081
+http://127.0.0.1:18081
 ```
 
 Credenciais iniciais padrao:
@@ -317,6 +343,7 @@ Confirme:
 - Dominio acessando via HTTPS.
 - Painel NPM com senha trocada.
 - Snapshot Kopia criado com sucesso.
+- `docker inspect --format '{{.State.Health.Status}}' mariadb_global php_global apigsfacil nginx_proxy_manager` em `healthy` depois do recreate com estes compose. PHP, Node e Kopia precisam de `--build` para a imagem nova.
 
 ## 10. Atualizacao
 
@@ -327,9 +354,9 @@ docker compose -f infra/compose.yaml --env-file infra/.env pull
 docker compose -f infra/compose.yaml --env-file infra/.env up -d
 ```
 
-Para o NPM, revise antes a versao fixada em `infra/nginx-proxy-manager/compose.yaml`.
+Para o NPM, revise antes o digest em `docs/image-inventory.md`.
 
-Para o backup, veja `docs/backup-kopia-gdrive.md`.
+Para voltar uma stack, use `docs/rollback-stacks.md`. Para o backup, veja `docs/backup-kopia-gdrive.md`.
 
 ## 11. Troca de servidor
 

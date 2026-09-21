@@ -1,0 +1,15 @@
+title = "meu-servidor"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Digests de imagem e artefatos locais"
+paths = [
+  '''(?:^|/)infra/backup/staging(?:/|$)''',
+  '''(?:^|/)vendor(?:/|$)''',
+  '''(?:^|/)node_modules(?:/|$)''',
+]
+regexes = [
+  '''sha256:[a-f0-9]{64}''',
+]

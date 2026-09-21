@@ -1,6 +1,9 @@
 ARG PHP_VERSION=8.2
+ARG PHP_DIGEST=sha256:163407b1ceca31a3a17211e07ca80982438bad31280ba18093b185d93a762fd2
+ARG COMPOSER_IMAGE=composer:2@sha256:a5f59b9fd2faf31218632be4809dc6491761085e8064c31dc3b84378c48c248b
 
-FROM php:${PHP_VERSION}-apache
+FROM ${COMPOSER_IMAGE} AS composer_bin
+FROM php:${PHP_VERSION}-apache@${PHP_DIGEST}
 
 ENV TZ=America/Sao_Paulo
 ENV COMPOSER_ALLOW_SUPERUSER=1
@@ -57,11 +60,13 @@ RUN apt-get update \
         > /usr/local/etc/php/conf.d/meu-servidor.ini \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer_bin /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
 COPY www/index.php www/.htaccess ./
+COPY docker/php-healthcheck /usr/local/bin/php-healthcheck
+RUN chmod 0755 /usr/local/bin/php-healthcheck
 
 RUN printf '%s\n' \
     '<VirtualHost *:80>' \
@@ -166,15 +171,14 @@ RUN printf '%s\n' \
     '    exit 1' \
     'fi' \
     '' \
-    'composer_bootstrap() {' \
+    'verify_vendor() {' \
     '    dir="$1"' \
     '    if [ ! -f "$dir/composer.json" ] || [ -f "$dir/vendor/autoload.php" ]; then' \
     '        return 0' \
     '    fi' \
-    '    if ! composer install --working-dir="$dir" --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader; then' \
-    '        echo "composer install failed in $dir; trying composer update..."' \
-    '        composer update --working-dir="$dir" --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader' \
-    '    fi' \
+    '    echo "Dependencias ausentes em $dir." >&2' \
+    '    echo "Rode php/scripts/install-composer-deps.sh --apply e suba de novo." >&2' \
+    '    exit 1' \
     '}' \
     '' \
     'mkdir -p /tmp/php-sessions' \
@@ -185,11 +189,12 @@ RUN printf '%s\n' \
     'ln -sfn /var/www/html/peoplecontacts /var/www/peoplecontacts' \
     'ln -sfn /var/www/html/gallosoundsite /var/www/gallosoundsite' \
     '' \
-    'composer_bootstrap /var/www/html/app' \
-    'composer_bootstrap /var/www/html/app_nf' \
-    'composer_bootstrap /var/www/html/app_sistema' \
-    'composer_bootstrap /var/www/html/gsfacilfront' \
-    'composer_bootstrap /var/www/html/peoplecontacts' \
+    'verify_vendor /var/www/html/app' \
+    'verify_vendor /var/www/html/app_nf' \
+    'verify_vendor /var/www/html/app_sistema' \
+    'verify_vendor /var/www/html/gsfacilfront' \
+    'verify_vendor /var/www/html/googlecalendar' \
+    'verify_vendor /var/www/html/peoplecontacts' \
     '' \
     'exec apache2-foreground' \
     > /usr/local/bin/meu-servidor-php-entrypoint \

@@ -26,17 +26,18 @@ if [[ ! -f "${BACKUP_DIR}/rclone/rclone.conf" ]]; then
   exit 1
 fi
 
-docker compose -f "${BACKUP_DIR}/compose.yaml" --env-file "${BACKUP_DIR}/.env" up -d
+docker compose -f "${BACKUP_DIR}/compose.yaml" --env-file "${BACKUP_DIR}/.env" up -d --build
 
-if docker compose -f "${BACKUP_DIR}/compose.yaml" --env-file "${BACKUP_DIR}/.env" exec -T kopia_backup \
-  kopia repository status >/dev/null 2>&1; then
+# shellcheck disable=SC1091
+source "${BACKUP_DIR}/scripts/kopia-cli.sh"
+
+if kopia_cli repository status >/dev/null 2>&1; then
   echo "Repositorio Kopia ja configurado e conectado."
   exit 0
 fi
 
 CREATE_OUTPUT="$(
-  docker compose -f "${BACKUP_DIR}/compose.yaml" --env-file "${BACKUP_DIR}/.env" exec -T kopia_backup \
-    kopia repository create rclone \
+  kopia_cli repository create rclone \
     --rclone-exe="${KOPIA_RCLONE_EXE}" \
     --remote-path="${RCLONE_REMOTE_NAME}:${RCLONE_REMOTE_PATH}" 2>&1
 )" || CREATE_EXIT=$?

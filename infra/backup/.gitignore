@@ -4,6 +4,9 @@
 
 rclone/
 credentials/
+secrets/kopia-repository-password
+secrets/kopia-ui.htpasswd
+secrets/*.htpasswd
 staging/
 data/
 

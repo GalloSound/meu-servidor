@@ -30,7 +30,7 @@ docker compose -f infra/nginx-proxy-manager/compose.yaml --env-file infra/nginx-
 ## Sobre versao da imagem
 
 - A imagem do NPM esta fixada em tag + digest (imutavel) para evitar mudancas inesperadas do `latest`.
-- O banco do NPM usa `mariadb:11.4` (imagem oficial), na mesma linha da sua infra global.
+- O banco do NPM usa `mariadb:11.4` com o mesmo digest da infra global. A lista esta em `docs/image-inventory.md`.
 - Quando quiser atualizar, revise a documentacao oficial e troque para a proxima release estavel suportada.
 
 ## Migracao para VPS (Hostgator)

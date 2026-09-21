@@ -39,22 +39,34 @@ fi
 
 # Sobe (ou mantem) o container kopia_backup em background.
 # Retorno esperado: "Container kopia_backup Running" ou "Started".
-docker compose -f "${BACKUP_DIR}/compose.yaml" --env-file "${BACKUP_DIR}/.env" up -d
+docker compose -f "${BACKUP_DIR}/compose.yaml" --env-file "${BACKUP_DIR}/.env" up -d --build
 
 # Caminho da pasta de staging dentro do container (volume montado em /staging).
 # Retorno esperado: ex. /staging/20260706_115030
 TARGET_DIR="/staging/${LATEST_RUN}"
 
+# shellcheck disable=SC1091
+source "${BACKUP_DIR}/scripts/kopia-cli.sh"
+
 # Cria snapshot criptografado no repositorio Kopia (Google Drive via rclone).
-# Retorno esperado: "Created snapshot with root ... ID ... in Xs".
-docker compose -f "${BACKUP_DIR}/compose.yaml" --env-file "${BACKUP_DIR}/.env" exec -T kopia_backup \
-  kopia snapshot create "${TARGET_DIR}"
+# A senha sai do secret montado no container, nao do argv deste script.
+kopia_cli snapshot create "${TARGET_DIR}"
 
 # Lista snapshots da pasta para confirmar que foi gravado.
-# Retorno esperado: linha com ID, tamanho, data e caminho do snapshot.
-docker compose -f "${BACKUP_DIR}/compose.yaml" --env-file "${BACKUP_DIR}/.env" exec -T kopia_backup \
-  kopia snapshot list "${TARGET_DIR}"
+kopia_cli snapshot list "${TARGET_DIR}"
 
-# Mensagem final de sucesso.
-# Retorno esperado: "Snapshot criado com sucesso para /staging/20260706_115030"
+umask 077
+date -u +%Y-%m-%dT%H:%M:%SZ > "${BACKUP_DIR}/staging/${LATEST_RUN}/SNAPSHOT_CONFIRMED"
+
 echo "Snapshot criado com sucesso para ${TARGET_DIR}"
+
+if [[ -z "${BACKUP_STAGING_CLEANUP:-}" && -f "${BACKUP_DIR}/.env" ]]; then
+  BACKUP_STAGING_CLEANUP="$(grep -E '^BACKUP_STAGING_CLEANUP=' "${BACKUP_DIR}/.env" | tail -n 1 | cut -d= -f2- | tr -d '[:space:]' || true)"
+fi
+
+# Cleanup local fica em dry-run ate BACKUP_STAGING_CLEANUP=true.
+if [[ "${BACKUP_STAGING_CLEANUP:-false}" == "true" ]]; then
+  "${BACKUP_DIR}/scripts/cleanup-staging.sh" --apply
+else
+  "${BACKUP_DIR}/scripts/cleanup-staging.sh" --dry-run
+fi

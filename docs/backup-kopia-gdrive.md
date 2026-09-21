@@ -17,8 +17,9 @@ cp infra/backup/.env.example infra/backup/.env
 
 Ajuste os valores no `infra/backup/.env`:
 
-- `KOPIA_UI_PASSWORD`
-- `KOPIA_REPOSITORY_PASSWORD`
+- `KOPIA_UI_PASSWORD` e `KOPIA_REPOSITORY_PASSWORD` (so para gerar os arquivos)
+- `BACKUP_STAGING_KEEP` (`2` ou `3`)
+- `BACKUP_STAGING_CLEANUP` (`false` ate o dry-run ser aceito)
 - `MARIADB_DATABASE`
 - `RCLONE_REMOTE_NAME`
 - `RCLONE_REMOTE_PATH`
@@ -57,6 +58,12 @@ cp ~/.config/rclone/rclone.conf infra/backup/rclone/rclone.conf
 Esse arquivo nao deve ir para o GitHub.
 
 ## 3. Subir o Kopia
+
+Gere os secrets antes do `up`. A senha da UI vai para um htpasswd e a senha do repositorio vai para um arquivo. Nenhuma das duas entra no `command` do container:
+
+```bash
+./infra/backup/scripts/render-kopia-secrets.sh
+```
 
 O compose usa `--insecure` para o painel em HTTP local (`127.0.0.1`). Em producao, restrinja o acesso (localhost, VPN ou firewall).
 
@@ -142,7 +149,7 @@ Exemplo para manter:
 
 ```bash
 docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env exec -T kopia_backup \
-  kopia policy set /staging --keep-latest 7 --keep-weekly 4 --keep-monthly 6
+  /usr/local/bin/kopia-entrypoint policy set /staging --keep-latest 7 --keep-weekly 4 --keep-monthly 6
 ```
 
 ## 7. Agendamento (cron no host)
@@ -153,13 +160,30 @@ Exemplo diario as 03:30:
 30 3 * * * /Applications/Docker_Projetos/meu-servidor/infra/backup/scripts/snapshot-now.sh >> /Applications/Docker_Projetos/meu-servidor/infra/backup/backup-cron.log 2>&1
 ```
 
-## 8. Restore (exemplo rapido)
+## 8. Staging local
+
+Depois de um snapshot confirmado, `snapshot-now.sh` grava `SNAPSHOT_CONFIRMED` na execucao e chama o cleanup em dry-run. Runs antigas sem esse arquivo ficam. O padrao `BACKUP_STAGING_CLEANUP=false` nao apaga nada.
+
+```bash
+./infra/backup/scripts/cleanup-staging.sh --dry-run
+```
+
+A saida lista `keep=` e `remove=`. So apos conferir a lista:
+
+```env
+BACKUP_STAGING_KEEP=3
+BACKUP_STAGING_CLEANUP=true
+```
+
+`BACKUP_STAGING_KEEP` aceita 2 ou 3. `--apply` sem essa variavel em `true` recusa e sai com codigo 2. O script nao mexe em snapshot remoto nem em volume Docker.
+
+## 9. Restore (exemplo rapido)
 
 Listar snapshots:
 
 ```bash
 docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env exec -T kopia_backup \
-  kopia snapshot list
+  /usr/local/bin/kopia-entrypoint snapshot list
 ```
 
 O valor iniciado por `k...` exibido por `snapshot list` e o root ID usado para
@@ -167,7 +191,7 @@ navegar e restaurar. Confira primeiro o diretorio `sql`:
 
 ```bash
 docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env exec -T kopia_backup \
-  kopia ls -l <root-id>/sql
+  /usr/local/bin/kopia-entrypoint ls -l <root-id>/sql
 ```
 
 Restaurar somente o dump SQL para uma pasta temporaria:
@@ -176,7 +200,7 @@ Restaurar somente o dump SQL para uma pasta temporaria:
 mkdir -p infra/backup/staging/restore-drill
 
 docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env exec -T kopia_backup \
-  kopia restore \
+  /usr/local/bin/kopia-entrypoint restore \
   <root-id>/sql/gpsjundi_bdgsfacil.sql \
   /staging/restore-drill/gpsjundi_bdgsfacil.sql
 ```
@@ -196,8 +220,21 @@ cmp -s \
 ```
 
 Isso comprova a recuperacao do arquivo criptografado, mas nao importa o SQL.
-Para um drill completo de banco, restaure em outro container/volume MariaDB,
-nunca sobre `mariadb_global`.
+Para o drill de banco, use outro container MariaDB sem rede, sem porta e com
+`/var/lib/mysql` em `tmpfs`; nunca importe sobre `mariadb_global`.
+
+Monte tambem `infra/mariadb.cnf` antes da primeira inicializacao do container
+temporario. A producao usa `lower_case_table_names=1`; sem esse arquivo, nomes
+como `gs_Administrador` falham no Linux mesmo quando o dump esta integro.
+
+Depois da importacao, valide:
+
+- `SELECT @@lower_case_table_names` retorna `1`;
+- quantidade de tabelas no schema restaurado;
+- consultas de leitura em tabelas conhecidas;
+- `mariadb-check --databases gpsjundi_bdgsfacil --check --silent`.
+
+Remova o container temporario e o dump restaurado assim que o drill terminar.
 
 ### OAuth do Rclone expirado
 
@@ -210,18 +247,22 @@ maquina com navegador. Preserve antes uma copia privada de `rclone.conf`, rode
 Nao execute `kopia repository create`: o repositorio criptografado ja existe.
 Nao versione nem cole o conteudo de `rclone.conf` em logs ou chats.
 
+O drill completo (configs, SQL e aplicacao, com MariaDB isolado) esta em `docs/restore-drill.md`.
+
 Restaurar o clone completo, quando houver espaco e uma janela de teste:
 
 ```bash
 docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env exec -T kopia_backup \
-  kopia restore <root-id>/full /staging/restore-full/
+  /usr/local/bin/kopia-entrypoint restore <root-id>/full /staging/restore-full/
 ```
 
-## 9. Boas praticas de seguranca
+## 10. Boas praticas de seguranca
 
 - Nunca versionar:
   - `infra/backup/.env`
   - `infra/backup/rclone/`
+  - `infra/backup/secrets/kopia-repository-password`
+  - `infra/backup/secrets/kopia-ui.htpasswd`
   - `infra/backup/staging/`
   - `infra/backup/data/`
 - Use senha forte no `KOPIA_REPOSITORY_PASSWORD`.

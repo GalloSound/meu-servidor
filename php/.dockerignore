@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+**/.git
+**/.git/**
+**/vendor
+**/node_modules
+**/credentials.json
+**/token*.json
+**/secure-data
+**/*.sql
+**/*.dump

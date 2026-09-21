@@ -3,27 +3,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        KOPIA_IMAGE_TAG: ${KOPIA_IMAGE_TAG:-0.23.1}
-        RCLONE_IMAGE_TAG: ${RCLONE_IMAGE_TAG:-1.69}
     image: "meu-servidor/kopia-rclone:${KOPIA_IMAGE_TAG:-0.23.1}"
     container_name: kopia_backup
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    entrypoint: ["/usr/local/bin/kopia-entrypoint"]
     command:
       - server
       - start
       - --insecure
       - --address=0.0.0.0:51515
       - --server-username=${KOPIA_UI_USER:?Defina KOPIA_UI_USER em infra/backup/.env}
-      - --server-password=${KOPIA_UI_PASSWORD:?Defina KOPIA_UI_PASSWORD em infra/backup/.env}
+      - --htpasswd-file=/run/secrets/kopia_ui_htpasswd
       - --ui
     environment:
       TZ: ${TZ:-America/Sao_Paulo}
-      KOPIA_PASSWORD: ${KOPIA_REPOSITORY_PASSWORD:?Defina KOPIA_REPOSITORY_PASSWORD em infra/backup/.env}
       USER: ${KOPIA_SYSTEM_USER:-backup}
       RCLONE_CONFIG: ${RCLONE_CONFIG:-/rclone/rclone.conf}
+      KOPIA_PASSWORD_FILE: /run/secrets/kopia_repository_password
     ports:
       - "127.0.0.1:${KOPIA_UI_PORT:-51515}:51515"
     volumes:
@@ -32,4 +30,18 @@ services:
       - ./data/logs:/app/logs
       - ./staging:/staging
       - ./rclone:/rclone:ro
+    secrets:
+      - kopia_repository_password
+      - kopia_ui_htpasswd
+    healthcheck:
+      test: ["CMD", "sh", "/usr/local/bin/kopia-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
+secrets:
+  kopia_repository_password:
+    file: ${KOPIA_REPOSITORY_PASSWORD_FILE:-./secrets/kopia-repository-password}
+  kopia_ui_htpasswd:
+    file: ${KOPIA_UI_HTPASSWD_FILE:-./secrets/kopia-ui.htpasswd}

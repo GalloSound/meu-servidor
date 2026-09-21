@@ -1,8 +1,14 @@
 services:
   npm_db:
-    image: mariadb:11.4
+    image: mariadb:11.4@sha256:70cc072b29b4a89ae07abb2d4da2c64678a7f2dfe092751bb51c87d67dc1338b
     container_name: npm_db
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -31,7 +37,14 @@ services:
     security_opt:
       - no-new-privileges:true
     depends_on:
-      - npm_db
+      npm_db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/bin/check-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     ports:
       - "${NPM_HTTP_BIND:?Defina NPM_HTTP_BIND no .env desta stack}:${NPM_HTTP_PORT:?Defina NPM_HTTP_PORT no .env desta stack}:80"
       - "${NPM_HTTPS_BIND:?Defina NPM_HTTPS_BIND no .env desta stack}:${NPM_HTTPS_PORT:?Defina NPM_HTTPS_PORT no .env desta stack}:443"

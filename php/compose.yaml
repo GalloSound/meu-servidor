@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
       args:
         PHP_VERSION: "${PHP_VERSION:?Defina PHP_VERSION em php/.env}"
+        PHP_DIGEST: "${PHP_DIGEST:-sha256:163407b1ceca31a3a17211e07ca80982438bad31280ba18093b185d93a762fd2}"
+    image: "meu-servidor/php-global:${PHP_IMAGE_TAG:-local}"
     container_name: php_global
     restart: unless-stopped
     security_opt:
@@ -32,6 +34,7 @@ services:
       - ./googlecalendar:/var/www/html/googlecalendar
       - ./peoplecontacts:/var/www/html/peoplecontacts
       - ./gallosoundsite:/var/www/html/gallosoundsite:ro
+      - ./docker/php-healthcheck:/usr/local/bin/php-healthcheck:ro
       - php_sessions:/tmp/php-sessions
     environment:
       TZ: America/Sao_Paulo
@@ -77,6 +80,14 @@ services:
       SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
       SMTP_SECURE: "${SMTP_SECURE:-ssl}"
       SMTP_PORT: "${SMTP_PORT:-465}"
+    # mariadb_global fica em outro compose; depends_on nao cruza stacks.
+    # Suba a infra antes. O healthcheck abaixo so confirma o Apache.
+    healthcheck:
+      test: ["CMD", "sh", "/usr/local/bin/php-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     networks:
       - rede-banco-global
       - rede-proxy-global

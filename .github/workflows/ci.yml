@@ -1,0 +1,115 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  compose-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Validar compose
+        run: bash scripts/ci/compose-config.sh
+
+  lint-and-bash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Instalar shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Lint
+        run: bash scripts/ci/lint.sh
+      - name: Testes de backup, composer e tags
+        run: bash scripts/ci/run-bash-tests.sh
+
+  php-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo_sqlite
+          coverage: none
+      - name: Auth, api-guard e node-proxy
+        run: |
+          php php/shared/auth/tests/run.php
+          php php/shared/api-guard/tests/run.php
+          php php/shared/node-proxy/tests/run.php
+
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: node/apigsfacil/package-lock.json
+      - name: Instalar, testar e auditar producao
+        working-directory: node/apigsfacil
+        run: |
+          npm ci
+          npm test
+          npm audit --omit=dev --audit-level=critical
+
+  composer-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          tools: composer
+          coverage: none
+      - name: Auditar lockfiles presentes
+        run: bash scripts/ci/composer-audit.sh
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Instalar gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_x64.tar.gz \
+            | tar -xz -C /tmp gitleaks
+          sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
+      - name: Varrer a arvore atual
+        run: gitleaks detect --no-git --source . --config .gitleaks.toml --redact
+
+  image-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Misconfig dos Dockerfiles e compose
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          scanners: misconfig
+          severity: CRITICAL
+          exit-code: "1"
+          skip-files: php/Dockerfile.pre-p0
+          skip-dirs: infra/backup/staging
+      - name: Instalar Trivy
+        run: |
+          curl -sSfL https://github.com/aquasecurity/trivy/releases/download/v0.58.1/trivy_0.58.1_Linux-64bit.tar.gz \
+            | tar -xz -C /tmp trivy
+          sudo mv /tmp/trivy /usr/local/bin/trivy
+      - name: Vulnerabilidades das imagens fixadas
+        run: bash scripts/ci/scan-images.sh

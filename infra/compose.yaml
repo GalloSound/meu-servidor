@@ -26,9 +26,15 @@ x-apache-caps: &apache-caps
 
 services:
   mariadb:
-    image: mariadb:11.4
+    image: mariadb:11.4@sha256:70cc072b29b4a89ae07abb2d4da2c64678a7f2dfe092751bb51c87d67dc1338b
     container_name: mariadb_global
     restart: always
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
     <<: [*no-new-privileges, *mariadb-caps]
     environment:
       MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?Defina MARIADB_ROOT_PASSWORD em infra/.env}"
@@ -42,9 +48,17 @@ services:
     # Apenas containers na rede DB conseguem falar com ele.
 
   phpmyadmin:
-    image: phpmyadmin:5.2
+    image: phpmyadmin:5.2@sha256:9e915766488a0f603183367a4b51f5db6309ea801f3eaa25138a83815772b14f
     container_name: phpmyadmin_global
     restart: always
+    healthcheck:
+      test: ["CMD", "sh", "/usr/local/bin/panel-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./docker/panel-healthcheck.sh:/usr/local/bin/panel-healthcheck:ro
     <<: [*no-new-privileges, *apache-caps]
     environment:
       PMA_HOST: mariadb_global
@@ -57,12 +71,19 @@ services:
     networks:
       - rede-banco-global
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
 
   filebrowser:
-    image: filebrowser/filebrowser:v2-s6
+    image: filebrowser/filebrowser:v2-s6@sha256:ee4ac79e52966a5f6247f99c7d667c1debfb277a3a61ab829f505aa8f4c74b21
     container_name: filebrowser_global
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/healthcheck.sh"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     profiles:
       - admin-tools
     <<: *no-new-privileges
