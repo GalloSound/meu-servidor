@@ -162,18 +162,59 @@ docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env exec -T
   kopia snapshot list
 ```
 
-Restaurar um dump SQL para pasta local:
+O valor iniciado por `k...` exibido por `snapshot list` e o root ID usado para
+navegar e restaurar. Confira primeiro o diretorio `sql`:
 
 ```bash
 docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env exec -T kopia_backup \
-  kopia restore <snapshot-id>:/staging/<timestamp>/sql/gpsjundi_bdgsfacil.sql /staging/restore/
+  kopia ls -l <root-id>/sql
 ```
 
-Restaurar clone completo de arquivos:
+Restaurar somente o dump SQL para uma pasta temporaria:
+
+```bash
+mkdir -p infra/backup/staging/restore-drill
+
+docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env exec -T kopia_backup \
+  kopia restore \
+  <root-id>/sql/gpsjundi_bdgsfacil.sql \
+  /staging/restore-drill/gpsjundi_bdgsfacil.sql
+```
+
+Compare o arquivo restaurado com o dump que originou o snapshot:
+
+```bash
+sha256sum \
+  infra/backup/staging/<timestamp>/sql/gpsjundi_bdgsfacil.sql \
+  infra/backup/staging/restore-drill/gpsjundi_bdgsfacil.sql
+
+cmp -s \
+  infra/backup/staging/<timestamp>/sql/gpsjundi_bdgsfacil.sql \
+  infra/backup/staging/restore-drill/gpsjundi_bdgsfacil.sql \
+  && echo "PASS: restore identico ao dump original" \
+  || echo "FAIL: arquivos diferentes"
+```
+
+Isso comprova a recuperacao do arquivo criptografado, mas nao importa o SQL.
+Para um drill completo de banco, restaure em outro container/volume MariaDB,
+nunca sobre `mariadb_global`.
+
+### OAuth do Rclone expirado
+
+Se `repository status` retornar `invalid_grant`, renove o remote `gdrive` em uma
+maquina com navegador. Preserve antes uma copia privada de `rclone.conf`, rode
+`rclone config reconnect gdrive:` na copia e teste o caminho remoto com
+`rclone lsd`. So depois instale o arquivo atualizado na VPS com permissao
+`0600` e reinicie `kopia_backup`.
+
+Nao execute `kopia repository create`: o repositorio criptografado ja existe.
+Nao versione nem cole o conteudo de `rclone.conf` em logs ou chats.
+
+Restaurar o clone completo, quando houver espaco e uma janela de teste:
 
 ```bash
 docker compose -f infra/backup/compose.yaml --env-file infra/backup/.env exec -T kopia_backup \
-  kopia restore <snapshot-id>:/staging/<timestamp>/full /staging/restore-full/
+  kopia restore <root-id>/full /staging/restore-full/
 ```
 
 ## 9. Boas praticas de seguranca
