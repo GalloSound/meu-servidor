@@ -19,7 +19,9 @@ KOPIA_REPOSITORY_PASSWORD=repo-secret-value
 EOF
 
 out="$(ENV_FILE="${TMP}/backup.env" SECRETS_DIR="${TMP}/secrets" "$SCRIPT")"
-printf '%s\n' "$out" | grep -q "$secret" && fail "a senha apareceu na saida" || true
+if printf '%s\n' "$out" | grep -q "$secret"; then
+  fail "a senha apareceu na saida"
+fi
 [[ -s "${TMP}/secrets/kopia-repository-password" ]] || fail "arquivo de senha ausente"
 [[ -s "${TMP}/secrets/kopia-ui.htpasswd" ]] || fail "htpasswd ausente"
 mode="$(stat -f '%OLp' "${TMP}/secrets/kopia-repository-password" 2>/dev/null || stat -c '%a' "${TMP}/secrets/kopia-repository-password")"

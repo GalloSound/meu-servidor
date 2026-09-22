@@ -72,6 +72,8 @@ if DOCKER_BIN="$stub" DOCKER_LOG="${TMP}/docker.log" \
 fi
 grep -q -- '--network none' "${TMP}/docker.log" || fail "import nao pediu network none"
 grep -q -- '--tmpfs /var/lib/mysql' "${TMP}/docker.log" || fail "import nao pediu tmpfs"
-grep -q 'mariadb_global' "${TMP}/docker.log" && fail "import apontou para o container de producao" || true
+if grep -q 'mariadb_global' "${TMP}/docker.log"; then
+  fail "import apontou para o container de producao"
+fi
 
 echo "PASS restore-drill"
