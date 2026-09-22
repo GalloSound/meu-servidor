@@ -118,7 +118,7 @@ jobs:
           skip-dirs: infra/backup/staging
       - name: Instalar Trivy
         run: |
-          curl -sSfL https://github.com/aquasecurity/trivy/releases/download/v0.58.1/trivy_0.58.1_Linux-64bit.tar.gz \
+          curl -sSfL https://github.com/aquasecurity/trivy/releases/download/v0.74.0/trivy_0.74.0_Linux-64bit.tar.gz \
             | tar -xz -C /tmp trivy
           sudo mv /tmp/trivy /usr/local/bin/trivy
       - name: Vulnerabilidades das imagens fixadas

@@ -24,7 +24,9 @@ if printf '%s\n' "$out" | grep -q "$secret"; then
 fi
 [[ -s "${TMP}/secrets/kopia-repository-password" ]] || fail "arquivo de senha ausente"
 [[ -s "${TMP}/secrets/kopia-ui.htpasswd" ]] || fail "htpasswd ausente"
-mode="$(stat -f '%OLp' "${TMP}/secrets/kopia-repository-password" 2>/dev/null || stat -c '%a' "${TMP}/secrets/kopia-repository-password")"
+if ! mode="$(stat -c '%a' "${TMP}/secrets/kopia-repository-password" 2>/dev/null)"; then
+  mode="$(stat -f '%OLp' "${TMP}/secrets/kopia-repository-password")"
+fi
 [[ "$mode" == "600" ]] || fail "permissao do secret: ${mode}"
 
 repo_line="$(tr -d '\r\n' < "${TMP}/secrets/kopia-repository-password")"
