@@ -49,7 +49,7 @@ Sem `--require-app`, um snapshot so de SQL e configs termina com `aplicacao AUSE
   --require-app
 ```
 
-O destino precisa estar vazio. O script recusa caminhos debaixo de `infra/data`, `infra/nginx-proxy-manager/data` e `infra/backup/data`. A origem permanece. `MANIFEST.txt` lista o SHA-256 de cada arquivo copiado.
+O destino precisa estar vazio. O script recusa caminhos debaixo de `infra/data`, `infra/nginx-proxy-manager/data` e `infra/backup/data`. A origem permanece. `MANIFEST.txt` lista o SHA-256 de cada arquivo copiado e nao inclui o proprio manifesto.
 
 Confira, ainda em `/tmp`:
 

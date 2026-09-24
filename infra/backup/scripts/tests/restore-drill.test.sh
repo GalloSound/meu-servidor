@@ -34,6 +34,38 @@ dest="${TMP}/dest"
 [[ -s "${dest}/full/php/index.php" ]] || fail "aplicacao nao copiada"
 [[ -s "${dest}/MANIFEST.txt" ]] || fail "manifesto ausente"
 [[ -s "${src}/sql/gpsjundi_bdgsfacil.sql" ]] || fail "origem foi alterada"
+if grep -q 'MANIFEST.txt' "${dest}/MANIFEST.txt"; then
+  fail "manifesto inclui o proprio arquivo"
+fi
+
+hash_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    shasum -a 256 "$1" | awk '{print $1}'
+  fi
+}
+
+listed=0
+while IFS= read -r line; do
+  case "$line" in
+    source=*|aplicacao=*) continue ;;
+  esac
+  listed_hash="${line%%  *}"
+  rel="${line#*  }"
+  [[ -f "${dest}/${rel}" ]] || fail "arquivo do manifesto ausente: ${rel}"
+  actual_hash="$(hash_file "${dest}/${rel}")"
+  [[ "$actual_hash" == "$listed_hash" ]] || fail "hash divergente: ${rel}"
+  listed=$((listed + 1))
+done < "${dest}/MANIFEST.txt"
+[[ "$listed" -ge 1 ]] || fail "manifesto sem arquivos"
+
+while IFS= read -r file; do
+  rel="${file#"${dest}/"}"
+  grep -Fq "  ${rel}" "${dest}/MANIFEST.txt" || fail "arquivo fora do manifesto: ${rel}"
+done <<EOF
+$(find "$dest" -type f ! -path "${dest}/MANIFEST.txt" | sort)
+EOF
 
 rm -rf "${src}/full"
 if "$SCRIPT" --source "$src" --dry-run --require-app >/dev/null 2>&1; then

@@ -178,7 +178,7 @@ fi
 {
   echo "source=${SOURCE_REAL}"
   echo "aplicacao=${app_status}"
-  find "$DEST_REAL" -type f | sort | while IFS= read -r file; do
+  find "$DEST_REAL" -type f ! -path "${DEST_REAL}/MANIFEST.txt" -print | sort | while IFS= read -r file; do
     rel="${file#"${DEST_REAL}/"}"
     hash="$(hash_file "$file")"
     echo "${hash}  ${rel}"
