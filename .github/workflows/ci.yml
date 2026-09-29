@@ -92,9 +92,13 @@ jobs:
         with:
           persist-credentials: false
       - name: Checkout ${{ matrix.project }}
-        env:
-          GIT_TERMINAL_PROMPT: "0"
-        run: git clone --depth 1 "https://github.com/${{ matrix.repository }}.git" "php/${{ matrix.project }}"
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repository }}
+          path: php/${{ matrix.project }}
+          token: ${{ secrets.PHP_REPOS_READ_TOKEN }}
+          persist-credentials: false
+          fetch-depth: 1
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"

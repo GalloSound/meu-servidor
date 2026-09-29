@@ -8,11 +8,11 @@ O workflow `.github/workflows/ci.yml` roda em pull request e em push para `main`
 | `lint-and-bash` | shellcheck, `bash -n`, `php -l` do `php/shared` e testes de cleanup, restore, tags e composer |
 | `php-tests` | `php/shared/auth`, `api-guard` e `node-proxy` em PHP 8.2 |
 | `node` | `npm ci`, `npm test`, `npm audit --omit=dev --audit-level=critical` |
-| `composer-audit` | matriz que clona `app_nf`, `app_sistema`, `gsfacilFront`, `googlecalendar` e `peoplecontacts` e roda `composer audit --locked` em cada um |
+| `composer-audit` | matriz que faz checkout de `app_nf`, `app_sistema`, `gsfacilFront`, `googlecalendar` e `peoplecontacts` e roda `composer audit --locked` em cada um |
 | `secret-scan` | gitleaks na arvore atual (`--no-git`), com `.gitleaks.toml` |
 | `image-scan` | Trivy misconfig CRITICAL (falha o job) e CVE CRITICAL das imagens pinadas (so relatorio) |
 
-Os cinco repositorios sao publicos. O job clona cada um sem token extra e falha se `composer.lock` nao estiver no Git. Nao ha passe quando o lock falta.
+Os cinco repositorios sao privados. O job faz checkout com `actions/checkout` e o secret `PHP_REPOS_READ_TOKEN` (Contents: Read-only). O token nao entra na URL, no log nem na linha de comando. O job falha se `composer.lock` nao estiver no Git. Nao ha passe quando o lock falta.
 
 No checkout local, com os diretorios em `php/`:
 

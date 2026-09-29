@@ -49,5 +49,14 @@ for project in app_nf app_sistema gsfacilFront googlecalendar peoplecontacts; do
     fail "matriz composer-audit sem ${project}"
   fi
 done
+if grep -q 'git clone' .github/workflows/ci.yml; then
+  fail "composer-audit ainda usa git clone"
+fi
+if ! grep -q 'secrets.PHP_REPOS_READ_TOKEN' .github/workflows/ci.yml; then
+  fail "workflow sem PHP_REPOS_READ_TOKEN"
+fi
+if ! grep -q 'fail-fast: false' .github/workflows/ci.yml; then
+  fail "composer-audit sem fail-fast false"
+fi
 
 echo "PASS static-checks"
