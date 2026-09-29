@@ -356,3 +356,15 @@ Nao restaure volume `infra/data` por causa desta mudanca. Nao rode `DROP USER 'r
 8. `compose up -d` do NPM.
 9. Trocar `DB_USER`/`DB_PASS` PHP e Node; `up -d` (Node com `--build`).
 10. Testes de porta, DNS, grants e smoke. Manter `root` so para dump/Kopia/emergencia.
+
+---
+
+## Plataforma PHP dos satelites Google
+
+Decisao registrada em 29/09/2026, sem recriar `php_global` e sem mudar producao nesta etapa:
+
+- O runtime compartilhado ja e PHP 8.2 no Mac e na VPS (`php/Dockerfile`, `PHP_VERSION=8.2`).
+- `googlecalendar` declara PHP 8.2 como unica plataforma suportada e encerra o suporte a PHP 7.4. O `composer.lock` desse repositorio passa a ser versionado. O codigo cobre somente eventos (`/gcar/addcalendar.php`, `/gcar/editcalendar.php`, `/gcar/excluircalendar.php`, `/gcar/oauth2callback.php`). Contatos ficam em `/apicontacts/` no `peoplecontacts`. Residuos sem consumidor (`composer.phar`, `package-lock.json`, `q`, `contacts.php`, `public/return.php`, `public/editAllDayCalendar.php`) saem do Git; `composer.phar` fica no `.gitignore`.
+- `peoplecontacts` e o outro satelite Google e segue a mesma decisao de plataforma na correcao seguinte. O codigo dele nao muda nesta etapa.
+- `app_sistema` permanece na migracao 7.4/8.2 ate correcao propria.
+- Esta decisao nao altera o container, o compose nem a imagem do runtime compartilhado.

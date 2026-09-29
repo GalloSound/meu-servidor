@@ -63,6 +63,6 @@ Filebrowser **nao** sobe no `up -d` padrao. Mac opcional: `--profile admin-tools
 ## Regras de trabalho
 
 - Comandos via Docker/`docker compose`. Conferir compose da infra antes de mudar host, porta, rede ou usuario DB.
-- PHP 7.4 e 8.2 conforme a migracao ja existente.
+- Runtime compartilhado: PHP 8.2 no Mac e na VPS. app_sistema permanece na migracao 7.4/8.2 ate a correcao propria. Satelites Google declaram PHP 8.2: googlecalendar ja encerrou o suporte a PHP 7.4; peoplecontacts sera alinhado na correcao seguinte, sem alterar o container php_global.
 - Mac e VPS usam os mesmos compose; so os `.env` mudam.
 - Tunel SSH para phpMyAdmin/PHP/API na VPS; site publico e HTTPS no NPM.
