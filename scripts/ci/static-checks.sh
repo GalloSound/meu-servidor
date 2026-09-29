@@ -41,4 +41,13 @@ if ! grep -q 'service_healthy' infra/nginx-proxy-manager/compose.yaml; then
   fail "NPM sem depends_on healthy"
 fi
 
+if grep -q 'nenhum composer.lock' scripts/ci/composer-audit.sh .github/workflows/ci.yml docs/ci.md; then
+  fail "falso PASS de composer-audit"
+fi
+for project in app_nf app_sistema gsfacilFront googlecalendar peoplecontacts; do
+  if ! grep -q "project: ${project}" .github/workflows/ci.yml; then
+    fail "matriz composer-audit sem ${project}"
+  fi
+done
+
 echo "PASS static-checks"

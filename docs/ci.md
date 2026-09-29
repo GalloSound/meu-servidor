@@ -8,11 +8,18 @@ O workflow `.github/workflows/ci.yml` roda em pull request e em push para `main`
 | `lint-and-bash` | shellcheck, `bash -n`, `php -l` do `php/shared` e testes de cleanup, restore, tags e composer |
 | `php-tests` | `php/shared/auth`, `api-guard` e `node-proxy` em PHP 8.2 |
 | `node` | `npm ci`, `npm test`, `npm audit --omit=dev --audit-level=critical` |
-| `composer-audit` | `composer audit` em cada `composer.lock` presente no checkout |
+| `composer-audit` | matriz que clona `app_nf`, `app_sistema`, `gsfacilFront`, `googlecalendar` e `peoplecontacts` e roda `composer audit --locked` em cada um |
 | `secret-scan` | gitleaks na arvore atual (`--no-git`), com `.gitleaks.toml` |
 | `image-scan` | Trivy misconfig CRITICAL (falha o job) e CVE CRITICAL das imagens pinadas (so relatorio) |
 
-Os projetos PHP de aplicacao nao estao neste repositorio. Nesse checkout, `composer-audit` passa com a mensagem de que nao achou lock. Na maquina que tem `php/gsfacilFront` e os outros apps, o mesmo script audita os locks.
+Os cinco repositorios sao publicos. O job clona cada um sem token extra e falha se `composer.lock` nao estiver no Git. Nao ha passe quando o lock falta.
+
+No checkout local, com os diretorios em `php/`:
+
+```bash
+bash scripts/ci/composer-audit.sh
+bash scripts/ci/composer-audit.sh php/gsfacilFront
+```
 
 `npm audit --omit=dev` em 21/09/2026 nao tem CRITICAL. Permanecem avisos high em `express`, `body-parser`, `path-to-regexp` e `qs`, dentro do range ja travado no lock. O job nao falha por esses high. Subir de major fica fora deste plano.
 

@@ -71,20 +71,37 @@ jobs:
           npm audit --omit=dev --audit-level=critical
 
   composer-audit:
+    name: composer-audit (${{ matrix.project }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: app_nf
+            repository: GalloSound/app_nf
+          - project: app_sistema
+            repository: GalloSound/app_sistema
+          - project: gsfacilFront
+            repository: GalloSound/gsfacilFront
+          - project: googlecalendar
+            repository: GalloSound/googlecalendar
+          - project: peoplecontacts
+            repository: GalloSound/peoplecontacts
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
-          token: ${{ secrets.APIGSFACIL_READ_TOKEN }}
           persist-credentials: false
+      - name: Checkout ${{ matrix.project }}
+        env:
+          GIT_TERMINAL_PROMPT: "0"
+        run: git clone --depth 1 "https://github.com/${{ matrix.repository }}.git" "php/${{ matrix.project }}"
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
           tools: composer
           coverage: none
-      - name: Auditar lockfiles presentes
-        run: bash scripts/ci/composer-audit.sh
+      - name: Auditar composer.lock
+        run: bash scripts/ci/composer-audit.sh "php/${{ matrix.project }}"
 
   secret-scan:
     runs-on: ubuntu-latest
