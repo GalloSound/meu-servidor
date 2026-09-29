@@ -19,6 +19,8 @@ printf 'services: {}\n' > "${src}/configs/infra/compose.yaml"
 printf 'services: {}\n' > "${src}/configs/php-compose.yaml"
 printf 'services: {}\n' > "${src}/configs/nginx-proxy-manager/compose.yaml"
 printf '<?php echo "ok";\n' > "${src}/full/php/index.php"
+mkdir -p "${src}/full/php/pasta com espaco"
+printf 'conteudo com espaco\n' > "${src}/full/php/pasta com espaco/arquivo.txt"
 
 out="$("$SCRIPT" --source "$src" --dry-run --require-app)"
 printf '%s\n' "$out" | grep -q 'PASS sql' || fail "sql nao validado"
@@ -33,9 +35,14 @@ dest="${TMP}/dest"
 [[ -s "${dest}/configs/php-compose.yaml" ]] || fail "config nao copiada"
 [[ -s "${dest}/full/php/index.php" ]] || fail "aplicacao nao copiada"
 [[ -s "${dest}/MANIFEST.txt" ]] || fail "manifesto ausente"
+[[ -s "${dest}/full/php/pasta com espaco/arquivo.txt" ]] || fail "arquivo com espaco nao copiado"
 [[ -s "${src}/sql/gpsjundi_bdgsfacil.sql" ]] || fail "origem foi alterada"
 if grep -q 'MANIFEST.txt' "${dest}/MANIFEST.txt"; then
   fail "manifesto inclui o proprio arquivo"
+fi
+grep -Fq '  full/php/pasta com espaco/arquivo.txt' "${dest}/MANIFEST.txt" || fail "caminho com espaco ausente do manifesto"
+if find "$(dirname "$dest")" -maxdepth 1 -name '.restore-drill-manifest.*' -print | grep -q .; then
+  fail "temporario do manifesto permaneceu apos sucesso"
 fi
 
 hash_file() {
@@ -66,6 +73,23 @@ while IFS= read -r file; do
 done <<EOF
 $(find "$dest" -type f ! -path "${dest}/MANIFEST.txt" | sort)
 EOF
+
+fail_bin="${TMP}/bin"
+mkdir -p "$fail_bin"
+cat > "${fail_bin}/mv" <<'EOF'
+#!/bin/sh
+echo "mv blocked" >&2
+exit 1
+EOF
+chmod +x "${fail_bin}/mv"
+fail_dest="${TMP}/dest-fail"
+if PATH="${fail_bin}:${PATH}" "$SCRIPT" --source "$src" --prepare-isolated "$fail_dest" --require-app >/dev/null 2>&1; then
+  fail "falha ao mover o manifesto deveria abortar"
+fi
+[[ ! -e "${fail_dest}/MANIFEST.txt" ]] || fail "manifesto parcial ficou no destino"
+if find "$(dirname "$fail_dest")" -maxdepth 1 -name '.restore-drill-manifest.*' -print | grep -q .; then
+  fail "temporario do manifesto permaneceu apos falha"
+fi
 
 rm -rf "${src}/full"
 if "$SCRIPT" --source "$src" --dry-run --require-app >/dev/null 2>&1; then

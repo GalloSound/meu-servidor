@@ -175,15 +175,37 @@ if [[ "$app_status" == "PASS" ]]; then
   copy_tree full
 fi
 
-{
-  echo "source=${SOURCE_REAL}"
-  echo "aplicacao=${app_status}"
-  find "$DEST_REAL" -type f ! -path "${DEST_REAL}/MANIFEST.txt" -print | sort | while IFS= read -r file; do
-    rel="${file#"${DEST_REAL}/"}"
-    hash="$(hash_file "$file")"
-    echo "${hash}  ${rel}"
-  done
-} > "${DEST_REAL}/MANIFEST.txt"
+write_manifest() {
+  local manifest_dir manifest_tmp
+  manifest_dir="$(dirname "$DEST_REAL")"
+  manifest_tmp="$(mktemp "${manifest_dir}/.restore-drill-manifest.XXXXXX")"
+  # shellcheck disable=SC2329
+  remove_manifest_tmp() {
+    rm -f -- "$manifest_tmp"
+  }
+  trap remove_manifest_tmp EXIT
+
+  if ! {
+    printf 'source=%s\n' "$SOURCE_REAL"
+    printf 'aplicacao=%s\n' "$app_status"
+    find "$DEST_REAL" -type f -print | sort | while IFS= read -r file; do
+      rel="${file#"${DEST_REAL}/"}"
+      hash="$(hash_file "$file")"
+      printf '%s  %s\n' "$hash" "$rel"
+    done
+  } > "$manifest_tmp"; then
+    echo "FAIL manifesto" >&2
+    exit 1
+  fi
+
+  if ! mv -- "$manifest_tmp" "${DEST_REAL}/MANIFEST.txt"; then
+    echo "FAIL manifesto" >&2
+    exit 1
+  fi
+  trap - EXIT
+}
+
+write_manifest
 
 echo "PASS prepare ${DEST_REAL}"
 
