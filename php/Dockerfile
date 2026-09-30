@@ -66,7 +66,8 @@ WORKDIR /var/www/html
 
 COPY www/index.php www/.htaccess ./
 COPY docker/php-healthcheck /usr/local/bin/php-healthcheck
-RUN chmod 0755 /usr/local/bin/php-healthcheck
+COPY docker/render-gallosound-vhost /usr/local/bin/render-gallosound-vhost
+RUN chmod 0755 /usr/local/bin/php-healthcheck /usr/local/bin/render-gallosound-vhost
 
 RUN printf '%s\n' \
     '<VirtualHost *:80>' \
@@ -195,6 +196,8 @@ RUN printf '%s\n' \
     'verify_vendor /var/www/html/gsfacilfront' \
     'verify_vendor /var/www/html/googlecalendar' \
     'verify_vendor /var/www/html/peoplecontacts' \
+    '' \
+    '/usr/local/bin/render-gallosound-vhost' \
     '' \
     'exec apache2-foreground' \
     > /usr/local/bin/meu-servidor-php-entrypoint \
