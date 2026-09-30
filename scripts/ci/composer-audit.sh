@@ -17,7 +17,24 @@ audit_dir() {
     exit 1
   fi
   echo "composer audit ${label}"
-  composer audit --no-interaction --locked --working-dir "$dir"
+  set +e
+  output="$(composer audit --no-interaction --locked --working-dir "$dir" 2>&1)"
+  status=$?
+  set -e
+  printf '%s\n' "$output"
+  if [[ $status -eq 0 ]]; then
+    return 0
+  fi
+  # Composer 2.10 sai com erro quando o lock existe e nao tem pacotes.
+  # Isso nao e advisory. Lock ausente continua falhando acima.
+  if printf '%s\n' "$output" | grep -F -q 'No installed packages found'; then
+    package_count="$(php -r 'echo count(json_decode(file_get_contents($argv[1]), true)["packages"]);' "${dir}/composer.lock")"
+    if [[ "$package_count" == "0" ]]; then
+      echo "OK ${label} sem pacotes no lock; nada a auditar"
+      return 0
+    fi
+  fi
+  exit "$status"
 }
 
 if [[ $# -gt 1 ]]; then
