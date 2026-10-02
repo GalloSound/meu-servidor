@@ -10,9 +10,9 @@ permissions:
 
 jobs:
   compose-config:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
           token: ${{ secrets.APIGSFACIL_READ_TOKEN }}
@@ -21,9 +21,9 @@ jobs:
         run: bash scripts/ci/compose-config.sh
 
   lint-and-bash:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
           token: ${{ secrets.APIGSFACIL_READ_TOKEN }}
@@ -36,9 +36,9 @@ jobs:
         run: bash scripts/ci/run-bash-tests.sh
 
   php-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.2"
@@ -51,14 +51,14 @@ jobs:
           php php/shared/node-proxy/tests/run.php
 
   node:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
           token: ${{ secrets.APIGSFACIL_READ_TOKEN }}
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "20"
           cache: npm
@@ -72,7 +72,7 @@ jobs:
 
   composer-audit:
     name: composer-audit (${{ matrix.project }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -88,11 +88,11 @@ jobs:
           - project: peoplecontacts
             repository: GalloSound/peoplecontacts
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Checkout ${{ matrix.project }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ matrix.repository }}
           path: php/${{ matrix.project }}
@@ -108,9 +108,9 @@ jobs:
         run: bash scripts/ci/composer-audit.sh "php/${{ matrix.project }}"
 
   secret-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
           token: ${{ secrets.APIGSFACIL_READ_TOKEN }}
@@ -124,9 +124,9 @@ jobs:
         run: gitleaks detect --no-git --source . --config .gitleaks.toml --redact
 
   image-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
           token: ${{ secrets.APIGSFACIL_READ_TOKEN }}
