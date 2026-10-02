@@ -127,7 +127,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Misconfig dos Dockerfiles e compose
+        with:
+          submodules: true
+          token: ${{ secrets.APIGSFACIL_READ_TOKEN }}
+          persist-credentials: false
+      - name: Misconfig CRITICAL dos Dockerfiles
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config

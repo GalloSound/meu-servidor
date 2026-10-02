@@ -59,4 +59,26 @@ if ! grep -q 'fail-fast: false' .github/workflows/ci.yml; then
   fail "composer-audit sem fail-fast false"
 fi
 
+image_scan="$(awk '
+  /^  image-scan:$/ {p=1; next}
+  p && /^  [^ ]/ {exit}
+  p {print}
+' .github/workflows/ci.yml)"
+if ! printf '%s\n' "$image_scan" | grep -q 'submodules: true'; then
+  fail "image-scan sem checkout do submodulo"
+fi
+if ! printf '%s\n' "$image_scan" | grep -q 'secrets.APIGSFACIL_READ_TOKEN'; then
+  fail "image-scan sem APIGSFACIL_READ_TOKEN"
+fi
+if ! printf '%s\n' "$image_scan" | grep -q 'persist-credentials: false'; then
+  fail "image-scan sem persist-credentials false"
+fi
+if printf '%s\n' "$image_scan" | grep -q 'SCAN_IMAGES_STRICT'; then
+  fail "image-scan nao deve ligar SCAN_IMAGES_STRICT"
+fi
+# shellcheck disable=SC2016
+if ! grep -q -- '--exit-code "$trivy_exit"' scripts/ci/scan-images.sh; then
+  fail "scan-images.sh fixa o exit code do Trivy"
+fi
+
 echo "PASS static-checks"
