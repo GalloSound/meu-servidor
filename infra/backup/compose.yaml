@@ -35,10 +35,10 @@ services:
       - kopia_ui_htpasswd
     healthcheck:
       test: ["CMD", "sh", "/usr/local/bin/kopia-healthcheck"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      interval: 5m
+      timeout: 30s
+      retries: 3
+      start_period: 60s
 
 secrets:
   kopia_repository_password:

@@ -83,6 +83,19 @@ Se precisar acessar remoto, use SSH tunnel:
 ssh -L 51515:127.0.0.1:51515 usuario@seu-vps
 ```
 
+### Healthcheck
+
+`healthy` comprova as duas condicoes:
+
+- a UI responde HTTP 200 (aberta) ou 401 (no ar, exigindo senha);
+- `/usr/local/bin/kopia-entrypoint repository status` conclui e o repositorio remoto esta acessivel.
+
+A sonda roda a cada 5 minutos (`timeout` 30s, `retries` 3, `start_period` 60s). A desconexao do repositorio e detectada na proxima sonda, em ate 5 minutos. O estado `unhealthy` so aparece depois de tres falhas consecutivas.
+
+`invalid_grant` faz `repository status` falhar e deixa o container `unhealthy`. O repositorio criptografado permanece no Google Drive. Nao rode `kopia repository create` e nao apague o repositorio para "corrigir" o healthcheck. Renove apenas o OAuth, como em "OAuth do Rclone expirado".
+
+Falha de repositorio registra somente `kopia healthcheck: repositorio indisponivel`. Senha, caminho remoto, token OAuth e `rclone.conf` nao entram nessa saida.
+
 ## 4. Criar repositorio no Google Drive
 
 ```bash
@@ -238,13 +251,15 @@ Remova o container temporario e o dump restaurado assim que o drill terminar.
 
 ### OAuth do Rclone expirado
 
-Se `repository status` retornar `invalid_grant`, renove o remote `gdrive` em uma
-maquina com navegador. Preserve antes uma copia privada de `rclone.conf`, rode
+Se `repository status` retornar `invalid_grant`, o healthcheck falha e o
+container fica `unhealthy`. Renove o remote `gdrive` em uma maquina com
+navegador. Preserve antes uma copia privada de `rclone.conf`, rode
 `rclone config reconnect gdrive:` na copia e teste o caminho remoto com
 `rclone lsd`. So depois instale o arquivo atualizado na VPS com permissao
 `0600` e reinicie `kopia_backup`.
 
-Nao execute `kopia repository create`: o repositorio criptografado ja existe.
+Nao execute `kopia repository create` e nao apague o repositorio: o
+repositorio criptografado ja existe. `unhealthy` nao autoriza recria-lo.
 Nao versione nem cole o conteudo de `rclone.conf` em logs ou chats.
 
 O drill completo (configs, SQL e aplicacao, com MariaDB isolado) esta em `docs/restore-drill.md`.
