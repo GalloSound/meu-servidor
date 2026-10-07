@@ -18,7 +18,7 @@ cp infra/backup/.env.example infra/backup/.env
 Ajuste os valores no `infra/backup/.env`:
 
 - `KOPIA_UI_PASSWORD` e `KOPIA_REPOSITORY_PASSWORD` (so para gerar os arquivos)
-- `BACKUP_STAGING_KEEP` (`2` ou `3`)
+- `BACKUP_STAGING_KEEP_DAILY` (`3`), `BACKUP_STAGING_KEEP_WEEKLY` (`1`) e `BACKUP_STAGING_KEEP_MONTHLY` (`1`)
 - `BACKUP_STAGING_CLEANUP` (`false` ate o dry-run ser aceito)
 - `MARIADB_DATABASE`
 - `RCLONE_REMOTE_NAME`
@@ -184,11 +184,13 @@ Depois de um snapshot confirmado, `snapshot-now.sh` grava `SNAPSHOT_CONFIRMED` n
 A saida lista `keep=` e `remove=`. So apos conferir a lista:
 
 ```env
-BACKUP_STAGING_KEEP=3
+BACKUP_STAGING_KEEP_DAILY=3
+BACKUP_STAGING_KEEP_WEEKLY=1
+BACKUP_STAGING_KEEP_MONTHLY=1
 BACKUP_STAGING_CLEANUP=true
 ```
 
-`BACKUP_STAGING_KEEP` aceita 2 ou 3. `--apply` sem essa variavel em `true` recusa e sai com codigo 2. O script nao mexe em snapshot remoto nem em volume Docker.
+A retencao local guarda os 3 dias mais recentes, a execucao mais nova da semana anterior e a mais nova do mes anterior. Uma execucao pode cumprir mais de um papel. `--apply` sem `BACKUP_STAGING_CLEANUP=true` recusa e sai com codigo 2. O script nao mexe em snapshot remoto nem em volume Docker.
 
 ## 9. Restore (exemplo rapido)
 
