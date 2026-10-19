@@ -79,8 +79,8 @@ services:
       SMTP_HOST: "${SMTP_HOST:-}"
       SMTP_USERNAME: "${SMTP_USERNAME:-}"
       SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
-      SMTP_SECURE: "${SMTP_SECURE:-ssl}"
-      SMTP_PORT: "${SMTP_PORT:-465}"
+      SMTP_SECURE: "${SMTP_SECURE:-tls}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
     # mariadb_global fica em outro compose; depends_on nao cruza stacks.
     # Suba a infra antes. O healthcheck abaixo so confirma o Apache.
     healthcheck:
