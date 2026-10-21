@@ -136,7 +136,7 @@ APP_BASE_URL=https://seudominio.com.br/app_sistema/
 APP_BASE_URL_NEW=https://seudominio.com.br/gsfacilfront/public/
 APP_BASE_URL_PEOPLECONTACTS=https://seudominio.com.br/peoplecontacts/
 APP_BASE_URL_GALLOSOUNDSITE=https://gallosound.com.br/
-GALLOSOUND_PUBLIC_HOSTS=gallosoundmultimidia.com.br
+GALLOSOUND_PUBLIC_HOSTS=gallosound.com.br,www.gallosound.com.br,gallosoundmultimidia.com.br
 BASE_DIR=/gsfacilfront/public
 BASE_URL_IMAGES=/app_sistema/
 BASE_APP=/app/
@@ -316,12 +316,17 @@ pública `/api` só deve ser removida depois do checklist em
 Ative SSL via Let's Encrypt para os dominios publicos.
 
 O site institucional responde na raiz apenas para os hosts de
-`GALLOSOUND_PUBLIC_HOSTS` (`gallosoundmultimidia.com.br` neste teste).
-Crie um Proxy Host desse dominio para `php_global:80` e emita o certificado.
+`GALLOSOUND_PUBLIC_HOSTS`:
+
+```text
+gallosound.com.br,www.gallosound.com.br,gallosoundmultimidia.com.br
+```
+
+Crie Proxy Hosts desses dominios para `php_global:80` e emita o certificado.
+O `www` deve fazer um 301 para `https://gallosound.com.br/`.
 `gsfacil.com.br` permanece no virtual host da plataforma, inclusive o caminho
-`/gallosoundsite/`, ate a retirada desse destino. O dominio principal entra
-depois na mesma variavel, separado por virgula, com o proprio Proxy Host
-para `php_global:80`. Os apps continuam somente em `gsfacil.com.br`.
+`/gallosoundsite/`. Os apps continuam somente em `gsfacil.com.br`.
+Nao altere o registro A publico ate o smoke com Host header passar.
 
 ## 8. Banco de dados
 
