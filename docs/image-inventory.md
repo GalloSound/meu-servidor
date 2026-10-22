@@ -1,6 +1,6 @@
 # Inventario de imagens
 
-Digests conferidos em 21/09/2026 com `docker buildx imagetools inspect`. O valor e o indice multi-arch, entao Mac (arm64) e VPS (amd64) usam o mesmo pin.
+Digests conferidos em 21/09/2026 com `docker buildx imagetools inspect`. O valor e o indice multi-arch, entao Mac (arm64) e VPS (amd64) usam o mesmo pin. O pin de `php:8.2-apache` foi reconferido em 22/10/2026 e aponta para PHP 8.2.35.
 
 Para consultar de novo, sem alterar arquivos:
 
@@ -13,7 +13,7 @@ Para consultar de novo, sem alterar arquivos:
 | `mariadb` | `11.4` | `sha256:70cc072b29b4a89ae07abb2d4da2c64678a7f2dfe092751bb51c87d67dc1338b` | `infra/compose.yaml`, `infra/nginx-proxy-manager/compose.yaml` |
 | `phpmyadmin` | `5.2` | `sha256:9e915766488a0f603183367a4b51f5db6309ea801f3eaa25138a83815772b14f` | `infra/compose.yaml` |
 | `filebrowser/filebrowser` | `v2-s6` | `sha256:ee4ac79e52966a5f6247f99c7d667c1debfb277a3a61ab829f505aa8f4c74b21` | `infra/compose.yaml` |
-| `php` | `8.2-apache` | `sha256:163407b1ceca31a3a17211e07ca80982438bad31280ba18093b185d93a762fd2` | `php/Dockerfile` (padrao) |
+| `php` | `8.2-apache` | `sha256:1309a2299d4dfc1d5cdf62291469b84ec4626021d818cef4cb30e79e7e10e6cc` | `php/Dockerfile` (padrao, PHP 8.2.35) |
 | `php` | `7.4-apache` | `sha256:c9d7e608f73832673479770d66aacc8100011ec751d1905ff63fae3fe2e0ca6d` | somente se `PHP_VERSION=7.4` |
 | `composer` | `2` | `sha256:a5f59b9fd2faf31218632be4809dc6491761085e8064c31dc3b84378c48c248b` | `php/Dockerfile`, `php/scripts/install-composer-deps.sh` |
 | `node` | `20-alpine` | `sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293` | `node/apigsfacil/Dockerfile` |

@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         PHP_VERSION: "${PHP_VERSION:?Defina PHP_VERSION em php/.env}"
-        PHP_DIGEST: "${PHP_DIGEST:-sha256:163407b1ceca31a3a17211e07ca80982438bad31280ba18093b185d93a762fd2}"
+        PHP_DIGEST: "${PHP_DIGEST:-sha256:1309a2299d4dfc1d5cdf62291469b84ec4626021d818cef4cb30e79e7e10e6cc}"
     image: "meu-servidor/php-global:${PHP_IMAGE_TAG:-local}"
     container_name: php_global
     restart: unless-stopped
