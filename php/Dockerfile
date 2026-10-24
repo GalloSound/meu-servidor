@@ -50,6 +50,7 @@ RUN apt-get update \
         'session.cookie_samesite=Lax' \
         'session.gc_maxlifetime=14400' \
         'session.cookie_lifetime=14400' \
+        'session.upload_progress.enabled=Off' \
         'display_errors=Off' \
         'html_errors=Off' \
         'log_errors=On' \
