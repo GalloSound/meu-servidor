@@ -1,0 +1,17 @@
+---
+description: Atualizar o catálogo de serviços do apigsfacil quando a API mudar
+globs: node/apigsfacil/src/**/*.js
+alwaysApply: false
+---
+
+# Catálogo de serviços do apigsfacil
+
+Fonte de verdade do que a API expõe: `node/apigsfacil/SERVICOS.md`. O `README.md` dessa pasta não recebe esse catálogo.
+
+Ao alterar rota, controller, service ou autenticação (endpoint novo, consulta, campo de body, auth ou job iniciado em `src/app.js`), atualize `node/apigsfacil/SERVICOS.md` no mesmo change:
+
+- método, caminho (`/api/...`), se exige login e o efeito
+- campos de entrada que o caller envia
+- gravação ou API externa, sem colar SQL e sem segredo
+
+Só documente o que está em `node/apigsfacil/src/routes.js`, mais jobs realmente chamados em `src/app.js`. Ao remover uma rota, retire a linha do catálogo.
