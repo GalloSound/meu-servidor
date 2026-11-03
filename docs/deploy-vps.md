@@ -49,6 +49,7 @@ git clone <url-app-sistema> php/app_sistema
 git clone <url-gsfacilfront> php/gsfacilFront
 git clone <url-googlecalendar> php/googlecalendar
 git clone <url-peoplecontacts> php/peoplecontacts
+git clone <url-googleads> php/googleads
 git clone <url-apigsfacil> node/apigsfacil
 ```
 

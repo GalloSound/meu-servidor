@@ -15,7 +15,7 @@ meu-servidor/
 └── docs/
 ```
 
-Os apps em `php/app*`, `gsfacilFront`, `googlecalendar`, `peoplecontacts` e `node/apigsfacil` sao repos independentes. Nao criar MariaDB nem Dockerfile/compose dentro de cada projeto PHP. O Node tem compose proprio em `node/apigsfacil/`. Ponteiros curtos tambem em `infra/.cursor/rules/`.
+Os apps em `php/app*`, `gsfacilFront`, `googlecalendar`, `peoplecontacts`, `googleads` e `node/apigsfacil` sao repos independentes. Nao criar MariaDB nem Dockerfile/compose dentro de cada projeto PHP. O Node tem compose proprio em `node/apigsfacil/`. Ponteiros curtos tambem em `infra/.cursor/rules/`.
 
 ## Redes
 
@@ -40,7 +40,7 @@ Nao conceder `root` a PHP/Node. `banco_inicial` e residual. SQL: `infra/sql/001_
 
 ## Runtime PHP
 
-Um container `php_global`. Sessao compartilhada: `app`, `app_nf`, `app_sistema`, `gsfacilFront`. Satelites no mesmo runtime: `googlecalendar`, `peoplecontacts`. Node fora do PHP.
+Um container `php_global`. Sessao compartilhada: `app`, `app_nf`, `app_sistema`, `gsfacilFront`. Satelites no mesmo runtime: `googlecalendar`, `peoplecontacts`, `googleads`. `googleads` nao tem alias HTTP. Node fora do PHP. A imagem instala as extensoes `grpc` e `protobuf` para o SDK do Google Ads.
 
 `DB_HOST=mariadb_global` (nunca `localhost` dentro do container). Browser chama PHP `/internal/api`; PHP chama Node em `http://apigsfacil:4000`.
 
@@ -63,6 +63,6 @@ Filebrowser **nao** sobe no `up -d` padrao. Mac opcional: `--profile admin-tools
 ## Regras de trabalho
 
 - Comandos via Docker/`docker compose`. Conferir compose da infra antes de mudar host, porta, rede ou usuario DB.
-- Runtime compartilhado: PHP 8.2 no Mac e na VPS. app_sistema permanece na migracao 7.4/8.2 ate a correcao propria. Satelites Google declaram PHP 8.2: googlecalendar ja encerrou o suporte a PHP 7.4; peoplecontacts sera alinhado na correcao seguinte, sem alterar o container php_global.
+- Runtime compartilhado: PHP 8.2 no Mac e na VPS. app_sistema permanece na migracao 7.4/8.2 ate a correcao propria. Satelites Google declaram PHP 8.2: googlecalendar encerrou o suporte a PHP 7.4; peoplecontacts e googleads tambem. `googleads` usa `googleads/google-ads-php` e exige a extensao `grpc` na imagem.
 - Mac e VPS usam os mesmos compose; so os `.env` mudam.
 - Tunel SSH para phpMyAdmin/PHP/API na VPS; site publico e HTTPS no NPM.

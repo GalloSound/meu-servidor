@@ -61,6 +61,29 @@ RUN apt-get update \
         > /usr/local/etc/php/conf.d/meu-servidor.ini \
     && rm -rf /var/lib/apt/lists/*
 
+# Google Ads SDK: transporte gRPC e protobuf C. A imagem é Debian (php:*-apache).
+# Versões alinhadas ao composer.lock de php/googleads (grpc/grpc 1.85.0 e
+# google/protobuf 5.36.2). A compilação via PECL é longa.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        $PHPIZE_DEPS \
+        zlib1g-dev \
+    && pecl install grpc-1.85.0 \
+    && pecl install protobuf-5.36.2 \
+    && docker-php-ext-enable grpc protobuf \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+        $PHPIZE_DEPS \
+        zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/* /tmp/pear
+
+# O purge acima pode levar as libs de gd e zip. Reinstala só o runtime.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libfreetype6 \
+        libpng16-16t64 \
+        libzip5 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=composer_bin /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
@@ -85,7 +108,7 @@ RUN printf '%s\n' \
     '    Alias /gcar /var/www/html/googlecalendar/public_html/gcar' \
     '' \
     '    # P0: private project trees are never HTTP namespaces.' \
-    '    RedirectMatch 403 "(?i)^/(googlecalendar|peoplecontacts|shared)(/|$)"' \
+    '    RedirectMatch 403 "(?i)^/(googlecalendar|peoplecontacts|googleads|shared)(/|$)"' \
     '' \
     '    # P0: deny repository metadata, secrets, private data and backup/dump files globally.' \
     '    RedirectMatch 403 "(?i)(^|/)(\\.git|\\.cursor|\\.svn|\\.hg|secure-data)(/|$)"' \
@@ -112,6 +135,11 @@ RUN printf '%s\n' \
     '    </Directory>' \
     '' \
     '    <Directory /var/www/html/peoplecontacts>' \
+    '        AllowOverride None' \
+    '        Require all denied' \
+    '    </Directory>' \
+    '' \
+    '    <Directory /var/www/html/googleads>' \
     '        AllowOverride None' \
     '        Require all denied' \
     '    </Directory>' \
@@ -197,6 +225,7 @@ RUN printf '%s\n' \
     'verify_vendor /var/www/html/gsfacilfront' \
     'verify_vendor /var/www/html/googlecalendar' \
     'verify_vendor /var/www/html/peoplecontacts' \
+    'verify_vendor /var/www/html/googleads' \
     '' \
     '/usr/local/bin/render-gallosound-vhost' \
     '' \

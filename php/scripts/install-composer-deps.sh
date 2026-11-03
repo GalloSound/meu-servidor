@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-projects="app app_nf app_sistema gsfacilFront googlecalendar peoplecontacts"
+projects="app app_nf app_sistema gsfacilFront googlecalendar peoplecontacts googleads"
 
 run_install() {
   local dir="$1"

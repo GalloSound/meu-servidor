@@ -33,6 +33,7 @@ services:
       - ./gsfacilFront:/var/www/html/gsfacilfront
       - ./googlecalendar:/var/www/html/googlecalendar
       - ./peoplecontacts:/var/www/html/peoplecontacts
+      - ./googleads:/var/www/html/googleads:ro
       - ./gallosoundsite:/var/www/html/gallosoundsite:ro
       - ./docker/php-healthcheck:/usr/local/bin/php-healthcheck:ro
       - php_sessions:/tmp/php-sessions
@@ -76,6 +77,12 @@ services:
       GOOGLE_CONTACTS_REFRESH_TOKEN: "${GOOGLE_CONTACTS_REFRESH_TOKEN:-}"
       GOOGLE_CONTACTS_REDIRECT_URI: "${GOOGLE_CONTACTS_REDIRECT_URI:-}"
       GOOGLE_CONTACTS_TOKEN_PATH: "${GOOGLE_CONTACTS_TOKEN_PATH:-}"
+      GOOGLE_ADS_CLIENT_ID: "${GOOGLE_ADS_CLIENT_ID:-}"
+      GOOGLE_ADS_CLIENT_SECRET: "${GOOGLE_ADS_CLIENT_SECRET:-}"
+      GOOGLE_ADS_DEVELOPER_TOKEN: "${GOOGLE_ADS_DEVELOPER_TOKEN:-}"
+      GOOGLE_ADS_REFRESH_TOKEN: "${GOOGLE_ADS_REFRESH_TOKEN:-}"
+      GOOGLE_ADS_LOGIN_CUSTOMER_ID: "${GOOGLE_ADS_LOGIN_CUSTOMER_ID:-}"
+      GOOGLE_ADS_CUSTOMER_ID: "${GOOGLE_ADS_CUSTOMER_ID:-}"
       SMTP_HOST: "${SMTP_HOST:-}"
       SMTP_USERNAME: "${SMTP_USERNAME:-}"
       SMTP_PASSWORD: "${SMTP_PASSWORD:-}"
